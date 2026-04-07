@@ -1,4 +1,5 @@
 
+#include "filter_parsing.hpp"
 #include "line_filter.hpp"
 #include "line_format.hpp"
 #include "terminal_modules.hpp"
@@ -92,6 +93,17 @@ void ConfigManagerModule::registerCommandCallback(LogParserTerminal& lpt) {
       trim(profile_name);
       ConfigHandler cfg;
       cfg.setProfileForFile(std::filesystem::canonical(lpi->filename).string(), profile_name);
+      
+      state.line_offset = 0;
+      state.cy = 0;
+      
+      std::string format_str = cfg.get(profile_name, CFG_LINE_FORMAT);
+      std::unique_ptr<LineFormat> line_format = LineFormat::fromFormatString(format_str);
+      std::string filter_str = cfg.get(profile_name, CFG_FILTER);
+      std::shared_ptr<LineFilter> line_filter = parse_filter_decl(filter_str, line_format.get());
+      lpi->setLineFormat(std::move(line_format), 0);
+      lpi->setFilter(line_filter);
+      
       cfg.save(profile_name);
       lpt.m_profile = profile_name;
       return 1;
