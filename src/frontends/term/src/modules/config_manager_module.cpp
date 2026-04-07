@@ -14,10 +14,11 @@
 void ConfigManagerModule::registerUserInputMapping(LogParserTerminal&){}
 void ConfigManagerModule::registerUserActionCallback(LogParserTerminal&) {}
 void ConfigManagerModule::registerCommandCallback(LogParserTerminal& lpt) {
-  lpt.registerCommandCallback([](std::string& cmd, term_state_t& state, LogParserInterface* lpi) -> int{
+  lpt.registerCommandCallback([&lpt](std::string& cmd, term_state_t& state, LogParserInterface* lpi) -> int{
     if(cmd.find(":cfg ") != 0) return 0;
 
     std::string subcmd = cmd.substr(5); // skip ":cfg "
+    trim(subcmd);
 
     if(subcmd.find("set ") == 0) {
       std::string kv_str = subcmd.substr(4); // skip "set "
@@ -26,7 +27,7 @@ void ConfigManagerModule::registerCommandCallback(LogParserTerminal& lpt) {
         trim(kv_str);
         if(kv_str == "filter"){
           std::shared_ptr<LineFilter> filter = lpi->getFilter();
-          if(filter == nullptr) throw std::runtime_error("Cannot save filter, no active filter");
+          if(filter == nullptr) throw std::runtime_error("Cannot save filter, there is no active filter");
           ConfigHandler cfg;
           std::string profile = cfg.getProfileForFile(std::filesystem::canonical(lpi->filename).string());
           cfg.set(profile, CFG_FILTER, filter->to_string());
@@ -35,6 +36,7 @@ void ConfigManagerModule::registerCommandCallback(LogParserTerminal& lpt) {
         }
         throw std::invalid_argument("Unexpected input for ':cfg set' command");
       }
+      
 
       std::string key = kv_str.substr(0, eq);
       std::string val = kv_str.substr(eq + 1);
@@ -72,6 +74,28 @@ void ConfigManagerModule::registerCommandCallback(LogParserTerminal& lpt) {
       return 1;
     }
 
-    return 1;
+    if(subcmd.find("saveas ") == 0){
+      std::string profile_name = subcmd.substr(7);
+      trim(profile_name);
+      ConfigHandler cfg;
+      std::string c9l_fn = std::filesystem::canonical(lpi->filename).string();
+      if(!cfg.copyProfileToNew(cfg.getProfileForFile(c9l_fn), profile_name)){
+        throw std::runtime_error("Could NOT create new profile. Does'" + profile_name + "' already exist?");
+      }
+      cfg.setProfileForFile(c9l_fn, profile_name);
+      cfg.save(profile_name);
+      lpt.m_profile = profile_name;
+      return 1;
+    }
+    if(subcmd.find("load ") == 0){
+      std::string profile_name = subcmd.substr(5);
+      trim(profile_name);
+      ConfigHandler cfg;
+      cfg.setProfileForFile(std::filesystem::canonical(lpi->filename).string(), profile_name);
+      cfg.save(profile_name);
+      lpt.m_profile = profile_name;
+      return 1;
+    }
+    throw std::invalid_argument("Could not understand config command (expected set, saveas or load)");
   });
 }

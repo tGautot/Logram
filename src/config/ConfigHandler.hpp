@@ -31,6 +31,7 @@ public:
   // Rewrites only the given profile's section in ~/.logram
   void save(const std::string& profile);
 
+  bool copyProfileToNew(const std::string& base_prof, const std::string& new_prof);
   // profile_mapping section helpers (<file_path>=<profile_name>)
   std::string getProfileForFile(const std::string& file_path) const;
   void setProfileForFile(const std::string& file_path, const std::string& profile_name);

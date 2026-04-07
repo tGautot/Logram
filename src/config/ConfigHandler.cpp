@@ -199,8 +199,16 @@ void ConfigHandler::save(const std::string& profile) {
   }
   for (const auto& l : lines)
     out << l << "\n";
-
+  out.close();
   LOG_EXIT();
+}
+
+
+bool ConfigHandler::copyProfileToNew(const std::string& base_prof, const std::string& new_prof){
+  if(s_sections.find(new_prof) != s_sections.end()) return false;
+  if(s_sections.find(base_prof) == s_sections.end()) return false;
+  s_sections[new_prof] = s_sections[base_prof];
+  return true;
 }
 
 std::string ConfigHandler::getProfileForFile(const std::string& file_path) const {

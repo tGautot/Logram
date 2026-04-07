@@ -7,6 +7,7 @@
 #include <sys/ioctl.h>
 #include <cstdint>
 #include <string>
+#include <functional>
 
 #include "line_format.hpp"
 #include "terminal_state.hpp"
@@ -15,8 +16,8 @@
 
 typedef uint64_t user_action_t;
 #define ACTION_NONE 0
-using ActionCallbackPtr =  int(*)(user_action_t, term_state_t&, LogParserInterface*);
-using CommandCallbackPtr =  int(*)(std::string&, term_state_t&, LogParserInterface*);
+using ActionCallbackPtr =  std::function<int(user_action_t, term_state_t&, LogParserInterface*)>;
+using CommandCallbackPtr =  std::function<int(std::string&, term_state_t&, LogParserInterface*)>;
 
 std::string ansi(const std::string& color, bool bold = false);
 
@@ -27,6 +28,7 @@ public:
 
   std::string frame_str;
   LogParserInterface* lpi;
+  std::string m_profile;
 
   LogParserTerminal(const std::string& filename);
   LogParserTerminal(const std::string& filename, std::unique_ptr<LineFormat> line_format);
@@ -59,8 +61,6 @@ public:
   void drawRows();
   void loop();
 
-private:
-  std::string m_profile;
 
 };
 
