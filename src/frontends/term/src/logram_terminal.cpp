@@ -1,4 +1,4 @@
-#include "log_parser_terminal.hpp"
+#include "logram_terminal.hpp"
 #include "ConfigHandler.hpp"
 #include "filter_parsing.hpp"
 #include "line_format.hpp"
@@ -139,9 +139,9 @@ static void setupTerm(term_state_t stt){
 
 
 
-LogParserTerminal::LogParserTerminal(const std::string& filename) : LogParserTerminal(filename, nullptr){}
+LogramTerminal::LogramTerminal(const std::string& filename) : LogramTerminal(filename, nullptr){}
 
-LogParserTerminal::LogParserTerminal(CachedFilteredFileNavigator* cfn_ptr)
+LogramTerminal::LogramTerminal(CachedFilteredFileNavigator* cfn_ptr)
   : cfn(cfn_ptr), m_profile(CFG_COMMON_PROFILE) {
   term_state.cx = 4;
   term_state.cy = 0;
@@ -149,7 +149,7 @@ LogParserTerminal::LogParserTerminal(CachedFilteredFileNavigator* cfn_ptr)
   term_state.raw_input = "";
 }
 
-LogParserTerminal::LogParserTerminal(const std::string& filename, std::unique_ptr<LineFormat> line_format){
+LogramTerminal::LogramTerminal(const std::string& filename, std::unique_ptr<LineFormat> line_format){
   ConfigHandler cfg;
   m_profile = cfg.getProfileForFile(std::filesystem::canonical(filename).string());
   
@@ -167,23 +167,23 @@ LogParserTerminal::LogParserTerminal(const std::string& filename, std::unique_pt
   term_state.raw_input = "";
 }
 
-void LogParserTerminal::registerUserInputMapping(std::string input_seq, user_action_t action_code){
+void LogramTerminal::registerUserInputMapping(std::string input_seq, user_action_t action_code){
   user_input_mappings.push_back({input_seq, action_code});
 }
 
-void LogParserTerminal::registerActionCallback(ActionCallbackPtr action_cb){
+void LogramTerminal::registerActionCallback(ActionCallbackPtr action_cb){
   action_cbs.push_back(action_cb);
 }
 
-void LogParserTerminal::registerCommandCallback(CommandCallbackPtr cmd_cb){
+void LogramTerminal::registerCommandCallback(CommandCallbackPtr cmd_cb){
   command_cbs.push_back(cmd_cb);
 }
 
-bool LogParserTerminal::isCursorOnLastLine(){
+bool LogramTerminal::isCursorOnLastLine(){
   return (term_state.cy + term_state.line_offset == cfn->known_last_line);
 }
 
-void LogParserTerminal::updateDisplayState(){
+void LogramTerminal::updateDisplayState(){
   term_state.displayed_pls.clear();
   ConfigHandler cfg;
   std::string line_numbering = cfg.get(m_profile, CFG_LINE_NUM_MODE) ;
@@ -202,8 +202,8 @@ void LogParserTerminal::updateDisplayState(){
   }
 }
 
-void LogParserTerminal::drawRows(){
-  LOG_FUNCENTRY(5, "LogParserTerminal::drawRows");
+void LogramTerminal::drawRows(){
+  LOG_FUNCENTRY(5, "LogramTerminal::drawRows");
   frame_str += ESC_CMD "J";
 
   // Render file lines
@@ -329,7 +329,7 @@ void LogParserTerminal::drawRows(){
   frame_str += ANSI_RESET;
 }
 
-void LogParserTerminal::computeFrameStr(){
+void LogramTerminal::computeFrameStr(){
   char buf[32];
 
   //frame_str += ESC_CMD "2J";
@@ -352,7 +352,7 @@ void LogParserTerminal::computeFrameStr(){
 }
 
 
-void LogParserTerminal::loop(){
+void LogramTerminal::loop(){
   while (1) {
     computeFrameStr();
     write(STDOUT_FILENO, frame_str.data(), frame_str.size());
@@ -367,12 +367,12 @@ inline char readByte(){
   return c;
 }
 
-void LogParserTerminal::insertAtRawCursor(const std::string& s){
+void LogramTerminal::insertAtRawCursor(const std::string& s){
   term_state.raw_input.insert(term_state.raw_input_cursor, s);
   term_state.raw_input_cursor += s.size();
 }
 
-void LogParserTerminal::submitRawInput(){
+void LogramTerminal::submitRawInput(){
   int cmd_used = 0;
   try{
     for(auto cmd_cb : command_cbs){
@@ -389,14 +389,14 @@ void LogParserTerminal::submitRawInput(){
   term_state.raw_input_cursor = 0;
 }
 
-void LogParserTerminal::backspaceRawInput(){
+void LogramTerminal::backspaceRawInput(){
   if(term_state.raw_input_cursor > 1) {
     term_state.raw_input.erase(term_state.raw_input_cursor - 1, 1);
     term_state.raw_input_cursor--;
   }
 }
 
-void LogParserTerminal::processRawCsiSequence(const std::string& params, char final_byte){
+void LogramTerminal::processRawCsiSequence(const std::string& params, char final_byte){
   if(final_byte == 'C' && params.empty()) { // right arrow
     if(term_state.raw_input_cursor < term_state.raw_input.size())
       term_state.raw_input_cursor++;
@@ -414,14 +414,14 @@ void LogParserTerminal::processRawCsiSequence(const std::string& params, char fi
   }
 }
 
-void LogParserTerminal::processRawNonCsiEsc(char c2){
+void LogramTerminal::processRawNonCsiEsc(char c2){
   insertAtRawCursor("\\e");
   if((unsigned char)c2 < 32) insertAtRawCursor({'^', (char)('@' + c2)});
   else insertAtRawCursor(std::string(1, c2));
 }
 
-user_action_t LogParserTerminal::matchInputSequence(const std::string& seq, bool& partial_match){
-  LOG_FUNCENTRY(3, "LogParserTerminal::matchInputSequence");
+user_action_t LogramTerminal::matchInputSequence(const std::string& seq, bool& partial_match){
+  LOG_FUNCENTRY(3, "LogramTerminal::matchInputSequence");
   partial_match = false;
   LOG_FCT(3, "Trying to match input sequence %s against %d mappings\n", seq.data(), user_input_mappings.size());
   for(auto mapping : user_input_mappings){
@@ -438,8 +438,8 @@ user_action_t LogParserTerminal::matchInputSequence(const std::string& seq, bool
   return ACTION_NONE;
 }
 
-user_action_t LogParserTerminal::getUserAction(){
-  LOG_FUNCENTRY(3, "LogParserTerminal::getUserAction");
+user_action_t LogramTerminal::getUserAction(){
+  LOG_FUNCENTRY(3, "LogramTerminal::getUserAction");
   std::string seq = "";
   bool need_next_byte = true;
 
@@ -513,7 +513,7 @@ user_action_t LogParserTerminal::getUserAction(){
   return ACTION_NONE;
 }
 
-void LogParserTerminal::handleUserAction(user_action_t action){
+void LogramTerminal::handleUserAction(user_action_t action){
   try {
     for(ActionCallbackPtr cb : action_cbs){
       cb(action, term_state, cfn);

@@ -1,6 +1,6 @@
 #include "common.hpp"
 #include "cached_filtered_file_navigator.hpp"
-#include "log_parser_terminal.hpp"
+#include "logram_terminal.hpp"
 #include "processed_line.hpp"
 #include "terminal_modules.hpp"
 #include "terminal_state.hpp"
@@ -64,12 +64,12 @@ static line_t search(term_state_t& state, CachedFilteredFileNavigator* cfn, bool
   return line_num;
 }
 
-void TextSearchModule::registerUserInputMapping(LogParserTerminal& term) {
+void TextSearchModule::registerUserInputMapping(LogramTerminal& term) {
   term.registerUserInputMapping("n", ACTION_SEARCH_NEXT);
   term.registerUserInputMapping("N", ACTION_SEARCH_PREV);
   term.registerUserInputMapping("/", ACTION_START_SEARCH);
 };
-void TextSearchModule::registerUserActionCallback(LogParserTerminal& term) {
+void TextSearchModule::registerUserActionCallback(LogramTerminal& term) {
   term.registerActionCallback([](user_action_t action, term_state_t& state, CachedFilteredFileNavigator* cfn) -> int{
     if(!searching) return 0;
     if(action != ACTION_SEARCH_NEXT && action != ACTION_SEARCH_PREV) return 0;
@@ -86,7 +86,7 @@ void TextSearchModule::registerUserActionCallback(LogParserTerminal& term) {
     return 0;
   });
 };
-void TextSearchModule::registerCommandCallback(LogParserTerminal& term){
+void TextSearchModule::registerCommandCallback(LogramTerminal& term){
   term.registerCommandCallback([](std::string& cmd, term_state_t& state, CachedFilteredFileNavigator* cfn) -> int {
     LOG_ENTRY("LAMBDA search module command callback search");
     size_t substr_pos = cmd.find(":?");

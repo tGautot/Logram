@@ -12,11 +12,11 @@ module_cmk_path = os.path.join(project_root, "src/frontends/term/CMakeLists.txt"
 main_cpp_path   = os.path.join(project_root, "src/frontends/term/main.cpp")
 
 hdr_template = """
-class MODULE_NAME : public LogParserTerminalModule {
+class MODULE_NAME : public LogramTerminalModule {
   public:
-  void registerUserInputMapping(LogParserTerminal&) override;
-  void registerUserActionCallback(LogParserTerminal&) override;
-  void registerCommandCallback(LogParserTerminal&) override;
+  void registerUserInputMapping(LogramTerminal&) override;
+  void registerUserActionCallback(LogramTerminal&) override;
+  void registerCommandCallback(LogramTerminal&) override;
 };
 """
 
@@ -25,11 +25,11 @@ src_template = """
 
 #define MY_ACTION 999
 
-void MODULE_NAME::registerUserInputMapping(LogParserTerminal&){
+void MODULE_NAME::registerUserInputMapping(LogramTerminal&){
   // My Action will be fired when the user enters AAA
   lpt.registerUserInputMapping("AAA", MY_ACTION);
 }
-void MODULE_NAME::registerUserActionCallback(LogParserTerminal&) {
+void MODULE_NAME::registerUserActionCallback(LogramTerminal&) {
   lpt.registerActionCallback([](user_action_t act, term_state_t& term_state, CachedFilteredFileNavigator* cfn)-> int{
     if(act == MY_ACTION){
       // Do stuff
@@ -38,7 +38,7 @@ void MODULE_NAME::registerUserActionCallback(LogParserTerminal&) {
     return 0;
   });
 }
-void MODULE_NAME::registerCommandCallback(LogParserTerminal& lpt) {
+void MODULE_NAME::registerCommandCallback(LogramTerminal& lpt) {
   lpt.registerCommandCallback([](std::string& cmd, term_state_t& state, CachedFilteredFileNavigator* cfn) -> int{
     // TODO, check for the command you want to handle here (e.g cmd.find(":my_cmd") == 0)
     return 0;

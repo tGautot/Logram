@@ -10,9 +10,9 @@
 
 #include "logging.hpp"
 
-void FilterManagementModule::registerUserInputMapping(LogParserTerminal&){}
-void FilterManagementModule::registerUserActionCallback(LogParserTerminal&) {}
-void FilterManagementModule::registerCommandCallback(LogParserTerminal& lpt) {
+void FilterManagementModule::registerUserInputMapping(LogramTerminal&){}
+void FilterManagementModule::registerUserActionCallback(LogramTerminal&) {}
+void FilterManagementModule::registerCommandCallback(LogramTerminal& lpt) {
   lpt.registerCommandCallback([](std::string& cmd, term_state_t& state, CachedFilteredFileNavigator* cfn) -> int{
     
     auto update_term_state_with_filter = [&state, cfn](std::shared_ptr<LineFilter> filter){

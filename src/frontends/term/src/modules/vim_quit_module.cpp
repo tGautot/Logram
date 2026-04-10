@@ -7,9 +7,9 @@ extern "C" {
 
 #include <string>
 
-void VimQuitModule::registerUserInputMapping(LogParserTerminal&){}
-void VimQuitModule::registerUserActionCallback(LogParserTerminal&) {}
-void VimQuitModule::registerCommandCallback(LogParserTerminal& lpt) {
+void VimQuitModule::registerUserInputMapping(LogramTerminal&){}
+void VimQuitModule::registerUserActionCallback(LogramTerminal&) {}
+void VimQuitModule::registerCommandCallback(LogramTerminal& lpt) {
   lpt.registerCommandCallback([](std::string& cmd, term_state_t& state, CachedFilteredFileNavigator* cfn) -> int{
     LOG_ENTRY("LAMBDA VimQuitModule");
     LOG_FCT(5, "Cmd is %s, match=%ld\n", cmd.data(), cmd.find(":q")); 

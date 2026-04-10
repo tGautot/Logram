@@ -5,7 +5,7 @@
 #include "line_parser.hpp"
 #include "filter_parsing.hpp"
 #include "test_helpers.hpp"
-#include "log_parser_terminal.hpp"
+#include "logram_terminal.hpp"
 #include "terminal_modules.hpp"
 
 #include <memory>
@@ -18,10 +18,10 @@ static std::unique_ptr<LineFormat> makeSimpleFormat() {
   return LineFormat::fromFormatString("{INT:Val} {STR:Name}");
 }
 
-// Build a LogParserTerminal with FilterManagementModule registered,
+// Build a LogramTerminal with FilterManagementModule registered,
 // backed by the sample.log LPI used across the test suite.
-static LogParserTerminal make_filter_term(CachedFilteredFileNavigator* cfn) {
-  LogParserTerminal term(cfn);
+static LogramTerminal make_filter_term(CachedFilteredFileNavigator* cfn) {
+  LogramTerminal term(cfn);
   term.term_state.nrows = 20;
   term.term_state.ncols = 120;
   term.term_state.cy = 0;
@@ -37,7 +37,7 @@ static LogParserTerminal make_filter_term(CachedFilteredFileNavigator* cfn) {
 }
 
 // Send a command string through the terminal's command callback path.
-static void send_cmd(LogParserTerminal& term, const std::string& cmd) {
+static void send_cmd(LogramTerminal& term, const std::string& cmd) {
   term.term_state.raw_input = cmd;
   term.submitRawInput();
 }

@@ -12,9 +12,9 @@
 
 #include "logging.hpp"
 
-void ConfigManagerModule::registerUserInputMapping(LogParserTerminal&){}
-void ConfigManagerModule::registerUserActionCallback(LogParserTerminal&) {}
-void ConfigManagerModule::registerCommandCallback(LogParserTerminal& lpt) {
+void ConfigManagerModule::registerUserInputMapping(LogramTerminal&){}
+void ConfigManagerModule::registerUserActionCallback(LogramTerminal&) {}
+void ConfigManagerModule::registerCommandCallback(LogramTerminal& lpt) {
   lpt.registerCommandCallback([&lpt](std::string& cmd, term_state_t& state, CachedFilteredFileNavigator* cfn) -> int{
     if(cmd.find(":cfg ") != 0) return 0;
 

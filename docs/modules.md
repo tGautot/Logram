@@ -12,7 +12,7 @@ All module source files live under:
 src/frontends/term/src/modules/
 ```
 
-The module class declarations are in `src/frontends/term/include/terminal_modules.hpp`, and the base class that every module inherits from is defined in `src/frontends/term/include/lp_terminal_module.hpp`.
+The module class declarations are in `src/frontends/term/include/terminal_modules.hpp`, and the base class that every module inherits from is defined in `src/frontends/term/include/logram_terminal_module.hpp`.
 
 ## A word of caution
 

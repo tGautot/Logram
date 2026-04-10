@@ -1,6 +1,6 @@
 #include <catch2/catch_test_macros.hpp>
 #include "test_helpers.hpp"
-#include "log_parser_terminal.hpp"
+#include "logram_terminal.hpp"
 #include "terminal_modules.hpp"
 
 // ACTION codes from text_search_module.cpp (file-scope #defines, not exported)
@@ -9,9 +9,9 @@
 #define ACTION_START_SEARCH 110
 
 // Helper: build a terminal with TextSearchModule fully registered and display populated
-static LogParserTerminal make_search_term(CachedFilteredFileNavigator* cfn, int nrows, int ncols,
+static LogramTerminal make_search_term(CachedFilteredFileNavigator* cfn, int nrows, int ncols,
                                            int cy, uint64_t line_offset) {
-  LogParserTerminal term(cfn);
+  LogramTerminal term(cfn);
   term.term_state.nrows = nrows;
   term.term_state.ncols = ncols;
   term.term_state.cy = cy;
@@ -28,7 +28,7 @@ static LogParserTerminal make_search_term(CachedFilteredFileNavigator* cfn, int 
 }
 
 // Simulate the user typing /<pattern><Enter>
-static void trigger_search(LogParserTerminal& term, const std::string& pattern) {
+static void trigger_search(LogramTerminal& term, const std::string& pattern) {
   term.term_state.raw_input = ":?" + pattern;
   term.submitRawInput();
 }
@@ -40,7 +40,7 @@ static void trigger_search(LogParserTerminal& term, const std::string& pattern) 
 TEST_CASE("TextSearchModule - input mappings") {
   setup();
   auto* cfn = make_cfn();
-  LogParserTerminal term(cfn);
+  LogramTerminal term(cfn);
 
   TextSearchModule mod;
   mod.registerUserInputMapping(term);

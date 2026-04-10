@@ -1,12 +1,12 @@
 #include <catch2/catch_test_macros.hpp>
 #include "test_helpers.hpp"
-#include "log_parser_terminal.hpp"
+#include "logram_terminal.hpp"
 #include "terminal_modules.hpp"
 
 TEST_CASE("VimMotionsModule - move input mappings") {
   setup();
   auto* cfn = make_cfn();
-  LogParserTerminal term(cfn);
+  LogramTerminal term(cfn);
 
   VimMotionsModule mod;
   mod.registerUserInputMapping(term);
@@ -46,7 +46,7 @@ TEST_CASE("VimMotionsModule - G jumps to end of file") {
   setup();
   // block_size=15 forces multiple block traversals to reach line 61
   auto* cfn = make_cfn(15);
-  LogParserTerminal term(cfn);
+  LogramTerminal term(cfn);
   term.term_state.nrows = 25;
   term.term_state.ncols = 80;
   term.term_state.cy = 0;
@@ -79,7 +79,7 @@ TEST_CASE("VimMotionsModule - G jumps to end of file") {
 TEST_CASE("VimMotionsModule - G when file fits on screen") {
   setup();
   auto* cfn = make_cfn(15);
-  LogParserTerminal term(cfn);
+  LogramTerminal term(cfn);
   // nrows large enough that all 62 lines fit (62 content rows + 1 status = 63)
   term.term_state.nrows = 70;
   term.term_state.ncols = 80;
@@ -106,7 +106,7 @@ TEST_CASE("VimMotionsModule - G when file fits on screen") {
 TEST_CASE("VimMotionsModule - gg jumps to beginning of file") {
   setup();
   auto* cfn = make_cfn(15);
-  LogParserTerminal term(cfn);
+  LogramTerminal term(cfn);
   term.term_state.nrows = 25;
   term.term_state.ncols = 80;
 
@@ -138,7 +138,7 @@ TEST_CASE("VimMotionsModule - gg jumps to beginning of file") {
 TEST_CASE("VimMotionsModule - gg from middle of file") {
   setup();
   auto* cfn = make_cfn(15);
-  LogParserTerminal term(cfn);
+  LogramTerminal term(cfn);
   term.term_state.nrows = 25;
   term.term_state.ncols = 80;
   term.term_state.cy = 10;
@@ -160,7 +160,7 @@ TEST_CASE("VimMotionsModule - gg from middle of file") {
 TEST_CASE("VimMotionsModule - gg from last line") {
   setup();
   auto* cfn = make_cfn(15);
-  LogParserTerminal term(cfn);
+  LogramTerminal term(cfn);
   term.term_state.nrows = 25;
   term.term_state.ncols = 80;
   term.term_state.cy = 0;
@@ -192,7 +192,7 @@ TEST_CASE("VimMotionsModule - gg from last line") {
 TEST_CASE("VimMotionsModule - gg from first line is a no-op") {
   setup();
   auto* cfn = make_cfn(15);
-  LogParserTerminal term(cfn);
+  LogramTerminal term(cfn);
   term.term_state.nrows = 25;
   term.term_state.ncols = 80;
   term.term_state.cy = 0;
@@ -214,7 +214,7 @@ TEST_CASE("VimMotionsModule - gg from first line is a no-op") {
 TEST_CASE("VimMotionsModule - G then gg then G then gg round-trip") {
   setup();
   auto* cfn = make_cfn(15);
-  LogParserTerminal term(cfn);
+  LogramTerminal term(cfn);
   term.term_state.nrows = 25;
   term.term_state.ncols = 80;
   term.term_state.cy = 0;

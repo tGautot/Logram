@@ -6,10 +6,10 @@ bool isCursorOnLastLine(term_state_t &term_state, CachedFilteredFileNavigator *c
   return (cfn->localToGlobalLineId(term_state.cy + term_state.line_offset) == cfn->known_last_line);
 }
 
-void CursorMoveModule::registerUserInputMapping(LogParserTerminal& term){
+void CursorMoveModule::registerUserInputMapping(LogramTerminal& term){
   // Dont register any input, this module only handles move actions
 };
-void CursorMoveModule::registerUserActionCallback(LogParserTerminal& term){
+void CursorMoveModule::registerUserActionCallback(LogramTerminal& term){
   term.registerActionCallback([](user_action_t act, term_state_t& term_state, CachedFilteredFileNavigator* cfn)-> int{
     bool last_line = isCursorOnLastLine(term_state, cfn);
     if(act == ACTION_MOVE_DOWN){
@@ -47,6 +47,6 @@ void CursorMoveModule::registerUserActionCallback(LogParserTerminal& term){
     return 0;
   });
 };
-void CursorMoveModule::registerCommandCallback(LogParserTerminal&){
+void CursorMoveModule::registerCommandCallback(LogramTerminal&){
   
 }

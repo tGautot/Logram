@@ -10,7 +10,7 @@
 #include <string>
 
 #include "line_format.hpp"
-#include "log_parser_terminal.hpp"
+#include "logram_terminal.hpp"
 #include "ConfigHandler.hpp"
 
 #include "logging.hpp"
@@ -44,7 +44,7 @@ int main(int argc, char** argv){
   if(argi < argc && (std::string(argv[argi]) == "-L" || std::string(argv[argi]) == "--log-level")){
     argi++;
     if(argi >= argc){
-      printf("Usage ./lp_term [-L <log_level>] <file_path>\n");
+      printf("Usage ./lgm [-L <log_level>] <file_path>\n");
       return 1;
     }
     log_level = atoi(argv[argi]);
@@ -53,7 +53,7 @@ int main(int argc, char** argv){
   logger_set_minlvl(log_level);
   LOG(3, "Starting log\n");
   if(argi >= argc){
-    printf("Usage ./lp_term [-L <log_level>] <file_path>\n");
+    printf("Usage ./lgm [-L <log_level>] <file_path>\n");
     return 1;
   }
   std::string filepath = argv[argi];
@@ -78,7 +78,7 @@ int main(int argc, char** argv){
   LOG(1, "using format %s\n", format_spec.data());
   std::unique_ptr<LineFormat> line_format = LineFormat::fromFormatString(format_spec);
 
-  LogParserTerminal lpt(filepath, std::move(line_format));
+  LogramTerminal lpt(filepath, std::move(line_format));
   // TODO load modules on the fly based on config
   // dlopen is fun, but should probably make python/lua bindings at some points
   CursorMoveModule cmm;

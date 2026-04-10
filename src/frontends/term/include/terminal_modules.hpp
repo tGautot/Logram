@@ -1,66 +1,66 @@
 #ifndef TERMINAL_MODULES_HPP
 #define TERMINAL_MODULES_HPP
 
-#include "lp_terminal_module.hpp"
+#include "logram_terminal_module.hpp"
 
-class CursorMoveModule : public LogParserTerminalModule {
+class CursorMoveModule : public LogramTerminalModule {
   public:
-  void registerUserInputMapping(LogParserTerminal&) override;
-  void registerUserActionCallback(LogParserTerminal&) override;
-  void registerCommandCallback(LogParserTerminal&) override;
+  void registerUserInputMapping(LogramTerminal&) override;
+  void registerUserActionCallback(LogramTerminal&) override;
+  void registerCommandCallback(LogramTerminal&) override;
 };
-class ArrowsModule : public LogParserTerminalModule {
+class ArrowsModule : public LogramTerminalModule {
   public:
-  void registerUserInputMapping(LogParserTerminal&) override;
-  void registerUserActionCallback(LogParserTerminal&) override;
-  void registerCommandCallback(LogParserTerminal&) override;
+  void registerUserInputMapping(LogramTerminal&) override;
+  void registerUserActionCallback(LogramTerminal&) override;
+  void registerCommandCallback(LogramTerminal&) override;
 };
-class WasdModule : public LogParserTerminalModule {
+class WasdModule : public LogramTerminalModule {
   public:
-  void registerUserInputMapping(LogParserTerminal&) override;
-  void registerUserActionCallback(LogParserTerminal&) override;
-  void registerCommandCallback(LogParserTerminal&) override;
+  void registerUserInputMapping(LogramTerminal&) override;
+  void registerUserActionCallback(LogramTerminal&) override;
+  void registerCommandCallback(LogramTerminal&) override;
 };
-class TextSearchModule : public LogParserTerminalModule {
+class TextSearchModule : public LogramTerminalModule {
   public:
-  void registerUserInputMapping(LogParserTerminal&) override;
-  void registerUserActionCallback(LogParserTerminal&) override;
-  void registerCommandCallback(LogParserTerminal&) override;
+  void registerUserInputMapping(LogramTerminal&) override;
+  void registerUserActionCallback(LogramTerminal&) override;
+  void registerCommandCallback(LogramTerminal&) override;
 };
-class VimQuitModule : public LogParserTerminalModule {
+class VimQuitModule : public LogramTerminalModule {
   public:
-  void registerUserInputMapping(LogParserTerminal&) override;
-  void registerUserActionCallback(LogParserTerminal&) override;
-  void registerCommandCallback(LogParserTerminal&) override;
-};
-
-
-class FilterManagementModule : public LogParserTerminalModule {
-  public:
-  void registerUserInputMapping(LogParserTerminal&) override;
-  void registerUserActionCallback(LogParserTerminal&) override;
-  void registerCommandCallback(LogParserTerminal&) override;
+  void registerUserInputMapping(LogramTerminal&) override;
+  void registerUserActionCallback(LogramTerminal&) override;
+  void registerCommandCallback(LogramTerminal&) override;
 };
 
-class VimMotionsModule : public LogParserTerminalModule {
+
+class FilterManagementModule : public LogramTerminalModule {
   public:
-  void registerUserInputMapping(LogParserTerminal&) override;
-  void registerUserActionCallback(LogParserTerminal&) override;
-  void registerCommandCallback(LogParserTerminal&) override;
+  void registerUserInputMapping(LogramTerminal&) override;
+  void registerUserActionCallback(LogramTerminal&) override;
+  void registerCommandCallback(LogramTerminal&) override;
 };
 
-class ConfigManagerModule : public LogParserTerminalModule {
+class VimMotionsModule : public LogramTerminalModule {
   public:
-  void registerUserInputMapping(LogParserTerminal&) override;
-  void registerUserActionCallback(LogParserTerminal&) override;
-  void registerCommandCallback(LogParserTerminal&) override;
+  void registerUserInputMapping(LogramTerminal&) override;
+  void registerUserActionCallback(LogramTerminal&) override;
+  void registerCommandCallback(LogramTerminal&) override;
 };
 
-class HideLatestErrorModule : public LogParserTerminalModule {
+class ConfigManagerModule : public LogramTerminalModule {
   public:
-  void registerUserInputMapping(LogParserTerminal&) override;
-  void registerUserActionCallback(LogParserTerminal&) override;
-  void registerCommandCallback(LogParserTerminal&) override;
+  void registerUserInputMapping(LogramTerminal&) override;
+  void registerUserActionCallback(LogramTerminal&) override;
+  void registerCommandCallback(LogramTerminal&) override;
+};
+
+class HideLatestErrorModule : public LogramTerminalModule {
+  public:
+  void registerUserInputMapping(LogramTerminal&) override;
+  void registerUserActionCallback(LogramTerminal&) override;
+  void registerCommandCallback(LogramTerminal&) override;
 };
 
 #endif

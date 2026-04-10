@@ -1,5 +1,5 @@
-#ifndef LOG_PARSER_TERMINAL_HPP
-#define LOG_PARSER_TERMINAL_HPP
+#ifndef LOGRAM_TERMINAL_HPP
+#define LOGRAM_TERMINAL_HPP
 
 #include <stdlib.h>
 #include <termios.h>
@@ -21,7 +21,7 @@ using CommandCallbackPtr =  std::function<int(std::string&, term_state_t&, Cache
 
 std::string ansi(const std::string& color, bool bold = false);
 
-class LogParserTerminal {
+class LogramTerminal {
 
 public:
   term_state_t term_state;
@@ -30,9 +30,9 @@ public:
   CachedFilteredFileNavigator* cfn;
   std::string m_profile;
 
-  LogParserTerminal(const std::string& filename);
-  LogParserTerminal(const std::string& filename, std::unique_ptr<LineFormat> line_format);
-  LogParserTerminal(CachedFilteredFileNavigator* cfn_ptr); // For unit testing (no terminal setup)
+  LogramTerminal(const std::string& filename);
+  LogramTerminal(const std::string& filename, std::unique_ptr<LineFormat> line_format);
+  LogramTerminal(CachedFilteredFileNavigator* cfn_ptr); // For unit testing (no terminal setup)
 
   std::vector<std::pair<std::string, user_action_t>> user_input_mappings;
   std::vector<ActionCallbackPtr> action_cbs;

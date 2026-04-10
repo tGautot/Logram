@@ -18,7 +18,7 @@ add_executable(run_tests
   test_cyclic_deque.cpp
   test_filters.cpp
   test_filter_roundtrip.cpp
-  test_log_parser_terminal.cpp
+  test_logram_terminal.cpp
   test_jump_to_local_line.cpp
   test_find_next_occurence.cpp
   modules/test_cursor_move_module.cpp

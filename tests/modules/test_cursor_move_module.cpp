@@ -1,12 +1,12 @@
 #include <catch2/catch_test_macros.hpp>
 #include "test_helpers.hpp"
-#include "log_parser_terminal.hpp"
+#include "logram_terminal.hpp"
 #include "terminal_modules.hpp"
 
 // Helper: create a terminal with the cursor module registered, display state populated
-static LogParserTerminal make_term(CachedFilteredFileNavigator* cfn, int nrows, int ncols,
+static LogramTerminal make_term(CachedFilteredFileNavigator* cfn, int nrows, int ncols,
                                    int cy, int cx, uint64_t line_offset) {
-  LogParserTerminal term(cfn);
+  LogramTerminal term(cfn);
   term.term_state.nrows = nrows;
   term.term_state.ncols = ncols;
   term.term_state.cy = cy;

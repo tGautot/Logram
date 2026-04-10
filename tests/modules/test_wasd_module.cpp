@@ -1,12 +1,12 @@
 #include <catch2/catch_test_macros.hpp>
 #include "test_helpers.hpp"
-#include "log_parser_terminal.hpp"
+#include "logram_terminal.hpp"
 #include "terminal_modules.hpp"
 
 TEST_CASE("WasdModule - input mappings") {
   setup();
   auto* cfn = make_cfn();
-  LogParserTerminal term(cfn);
+  LogramTerminal term(cfn);
 
   WasdModule mod;
   mod.registerUserInputMapping(term);

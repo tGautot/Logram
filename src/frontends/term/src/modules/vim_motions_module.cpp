@@ -1,5 +1,5 @@
 
-#include "lp_terminal_module.hpp"
+#include "logram_terminal_module.hpp"
 #include "terminal_modules.hpp"
 #include <cctype>
 #include <cstdlib>
@@ -9,7 +9,7 @@
 
 #define is_digit(c) (c >= '0' && c <= '9')
 
-void VimMotionsModule::registerUserInputMapping(LogParserTerminal& lpt){
+void VimMotionsModule::registerUserInputMapping(LogramTerminal& lpt){
   lpt.registerUserInputMapping("gg", ACTION_GO_TO_FILE_BEGINNING);
   lpt.registerUserInputMapping("G", ACTION_GO_TO_FILE_END);
   lpt.registerUserInputMapping("h", ACTION_MOVE_LEFT);
@@ -17,7 +17,7 @@ void VimMotionsModule::registerUserInputMapping(LogParserTerminal& lpt){
   lpt.registerUserInputMapping("k", ACTION_MOVE_UP);
   lpt.registerUserInputMapping("l", ACTION_MOVE_RIGHT);
 }
-void VimMotionsModule::registerUserActionCallback(LogParserTerminal& lpt) {
+void VimMotionsModule::registerUserActionCallback(LogramTerminal& lpt) {
   lpt.registerActionCallback([](user_action_t act, term_state_t& state, CachedFilteredFileNavigator* cfn)-> int{
     if(act == ACTION_GO_TO_FILE_BEGINNING){
       state.cy = 0;
@@ -35,7 +35,7 @@ void VimMotionsModule::registerUserActionCallback(LogParserTerminal& lpt) {
     return 0;
   });
 }
-void VimMotionsModule::registerCommandCallback(LogParserTerminal& lpt) {
+void VimMotionsModule::registerCommandCallback(LogramTerminal& lpt) {
   lpt.registerCommandCallback([](std::string& cmd, term_state_t& state, CachedFilteredFileNavigator* cfn) -> int{
     if(cmd.size() == 1 || !is_digit(cmd[1])) {
       return 0;
