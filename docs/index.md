@@ -103,3 +103,5 @@ By default, opening a new file (at a path on which logram was never used before)
 - [Format Strings](format-strings.md) — describe your log's structure
 - [Filtering](filtering.md) — field-level filters and boolean combinations
 - [Keybindings](keybindings.md) — every key Logram responds to
+- [Modules](modules.md) — Customize Logram's behavior to your needs
+- [Roadmap](roadmap.md) — Discussing the future of Logram
