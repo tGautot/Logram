@@ -2,7 +2,7 @@
 
 # Logram
 
-`vim`, `grep` and `tail` are powerful, but they treat your logs as plain text. Logram lets you **define the structure** of your log lines, then navigate, filter, and search based on what the fields *mean* — not just what they look like.
+`vim` and `grep` are powerful, but they treat your logs as plain text. Logram lets you **define the structure** of your log lines, then navigate, filter, and search based on what the fields *mean* — not just what they look like.
 
 ---
 
@@ -35,7 +35,7 @@ This extracts `Date`, `Time`, `Level`, `Source`, and `Message` as typed, named f
 
 **2. Navigate your file**
 
-Use vim-style keys (`hjkl`, `gg`, `G`, `:42`) to move through the file at any scale. Logram uses memory-mapped file access — large files are no problem.
+Use vim-style keys (`hjkl`, `gg`, `G`, `:42`), arrows, scrollwheel, to move through the file at any scale. Logram uses memory-mapped file access — large files are no problem.
 
 **3. Filter by field**
 
@@ -44,7 +44,7 @@ Apply filters like:
 - `Source BEGINS_WITH retry`
 - `Time GREATER 085339`
 
-Combine them with `AND`, `OR`, `XOR` logic. Only matching lines are shown.
+Combine them with `AND`, `OR`, `XOR` logic. Only matching lines are shown. Checkout the [filtering documentation](https://logram.readthedocs.io/en/latest/filtering/) for more info.
 
 **4. Search within results**
 
@@ -99,7 +99,7 @@ A format string is a sequence of **typed fields**:
 | String | `{STR:Name}` | Any text up to the next delimiter |
 | Character | `{CHR:Name,target,repeat}` | Occurence of a specific (repeating) char |
 
-Field names are optional but required for filtering. For a more complete view on format string, please refer to the usage guide (TODO).
+Field names are optional but required for filtering. For a more complete view on format string, please refer to the [documentation](https://logram.readthedocs.io/en/latest/format-strings/).
 
 
 **Example** 
@@ -124,7 +124,7 @@ You have thrown away all the whitespaces and formatting characters, and now you 
 | Source | "......connect" |
 | Message | "Connection established" |
 
-Note: with a simple change to the format string you could even get rid of the dots in the `Source` Field! For this, refer to the format string documentation (TODO) 
+Note: with a simple change to the format string you could even get rid of the dots in the `Source` Field! For this, refer to the [format string documentation](https://logram.readthedocs.io/en/latest/format-strings/)
 
 
 ---
@@ -144,9 +144,11 @@ Note: with a simple change to the format string you could even get rid of the do
 | `n` / `N` | Next / previous match |
 | `:q` | Quit |
 
+And many more! Checkout all the default [keybinds](https://logram.readthedocs.io/en/latest/keybindings/)!
+
 ---
 
-## Why not just use `grep`?
+## Why not just use `vim` or `grep`?
 
 | | vim | grep / tail | Logram |
 |---|-------------|--------|--------|
@@ -167,4 +169,4 @@ Logram is not a replacement for log aggregation platforms — it's a replacement
 
 ## Footnote: Modules
 
-Logram in its current state "has support for modules" (please notice the quotes). If you would like to add some capabilities to Logram that would fit your logs/workflows, you can do so by creating modules. Modules give you an easy way to "listen" to user input in the terminal, react to it and change the state of the program. Most of the interactions between the user and the TUI available by default are done via modules.  Note that this is in a _VERY_ experimental stage, so you might be somewhat limit. Please refer to the usage guide for more info (TODO)
+Logram's interactivity is done exclusively through modules. If you would like to add some capabilities to Logram that would fit your logs/workflows, you can do so by creating modules. Modules give you an easy way to "listen" to user input in the terminal, react to it and change the state of the program.  Note that since Logram is in beta, modules are bound to break. Please refer to the [usage guide](https://logram.readthedocs.io/en/latest/modules/) for more info.

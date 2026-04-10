@@ -18,7 +18,7 @@ The module class declarations are in `src/frontends/term/include/terminal_module
 
 Logram is in beta. The module interface, the terminal state structure, and the registration APIs are all work in progress. A module you write today will very likely break as the internals evolve. That's the trade-off for getting in early — you can shape Logram to your needs right now, but expect to update your code as things change.
 
-Also, at the moment there is no dynamic loading mechanism. To add a module, you write it directly in the source tree alongside the existing ones and recompile the whole project. In practice this is fine — Logram compiles fast — but proper plugin support is planned for the future.
+Also, at the moment there is no dynamic loading mechanism. To add a module, you write it directly in the source tree alongside the existing ones, update one logram function (this is done automatically, more on this [later](#creating-your-own-module)) and recompile/relink what is needed. In practice this is fine — Logram compiles fast — but proper plugin support is planned for the future.
 
 ## How modules work
 
