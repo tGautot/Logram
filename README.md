@@ -25,7 +25,7 @@ Truth is, you probably need only a few of these lines, the trick is finding them
 
 **1. Define your log format**
 
-Tell LogParser what your lines look like using a simple format string:
+Tell Logram what your lines look like using a simple format string:
 
 ```
 {INT:Date} {INT:Time} {STR:Level} :{STR:Source}: {STR:Message}
@@ -35,7 +35,7 @@ This extracts `Date`, `Time`, `Level`, `Source`, and `Message` as typed, named f
 
 **2. Navigate your file**
 
-Use vim-style keys (`hjkl`, `gg`, `G`, `:42`) to move through the file at any scale. LogParser uses memory-mapped file access — large files are no problem.
+Use vim-style keys (`hjkl`, `gg`, `G`, `:42`) to move through the file at any scale. Logram uses memory-mapped file access — large files are no problem.
 
 **3. Filter by field**
 

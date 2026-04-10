@@ -59,3 +59,22 @@ A module can be as simple as the **Vim Quit** module (one command, a handful of 
 - If you're adding a `:` command, you need a command callback.
 
 Look at the existing modules in `src/frontends/term/src/modules/` for patterns to follow. The Arrows module and Vim Quit module are good starting points for understanding the basics. The Text Search module shows how all three parts fit together.
+
+## Creating your own module
+
+You can use the python script located at `scripts/new_module.py`, give it your module's name as argument, e.g. `python new_module.py WordJump`, which will make all the necessary updates so that you can focus on writing your module's logic.
+
+In detail, that script will:
+1. Create the module's source file (`word_jump_module.cpp`) at the right location (`src/frontends/term/src/modules`)
+2. Update the right CMakeLists.txt so that file get compiled
+3. Add your Module declaration to a header file.
+4. Update Logram's main function in order to "register" the module
+
+Once you've finished writing your module and you are ready to test it, just recompile Logram: 
+
+```bash
+mkdir build
+cd build
+cmake ..
+make -j 8
+```

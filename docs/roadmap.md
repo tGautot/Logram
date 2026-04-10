@@ -20,6 +20,10 @@ Because of this, before 1.0, there should be a decision and implementation on a 
 
 Since the only external dependency of Logram is Catch2, the test framework, compilation of the tests sources will automatically pull the dependency through CMake's FetchContent. Thus, compilation of the test suites should be opt-in rather than opt-out.
 
+## Runtime enabling/disabling of modules
+
+Everything is in the title of this one.
+
 ## Improvment to tests
 
 The tests need to be improved, some features are not covered at all, currently the tests need to be ran exactly from the `Logram/build/bin` folder since some paths to sample tests files are hardcoded, the "production" config file `.logram` is used (meaning that if someone updates their `.logram` and THEN runs the tests, they will most likely fail)... 
