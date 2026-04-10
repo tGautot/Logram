@@ -5,8 +5,8 @@
 
 TEST_CASE("ArrowsModule - input mappings") {
   setup();
-  auto* lpi = make_lpi();
-  LogParserTerminal term(lpi);
+  auto* cfn = make_cfn();
+  LogParserTerminal term(cfn);
 
   ArrowsModule mod;
   mod.registerUserInputMapping(term);

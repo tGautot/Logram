@@ -15,7 +15,7 @@
 void ConfigManagerModule::registerUserInputMapping(LogParserTerminal&){}
 void ConfigManagerModule::registerUserActionCallback(LogParserTerminal&) {}
 void ConfigManagerModule::registerCommandCallback(LogParserTerminal& lpt) {
-  lpt.registerCommandCallback([&lpt](std::string& cmd, term_state_t& state, LogParserInterface* lpi) -> int{
+  lpt.registerCommandCallback([&lpt](std::string& cmd, term_state_t& state, CachedFilteredFileNavigator* cfn) -> int{
     if(cmd.find(":cfg ") != 0) return 0;
 
     std::string subcmd = cmd.substr(5); // skip ":cfg "
@@ -27,10 +27,10 @@ void ConfigManagerModule::registerCommandCallback(LogParserTerminal& lpt) {
       if(eq == std::string::npos){
         trim(kv_str);
         if(kv_str == "filter"){
-          std::shared_ptr<LineFilter> filter = lpi->getFilter();
+          std::shared_ptr<LineFilter> filter = cfn->getFilter();
           if(filter == nullptr) throw std::runtime_error("Cannot save filter, there is no active filter");
           ConfigHandler cfg;
-          std::string profile = cfg.getProfileForFile(std::filesystem::canonical(lpi->filename).string());
+          std::string profile = cfg.getProfileForFile(std::filesystem::canonical(cfn->filename).string());
           cfg.set(profile, CFG_FILTER, filter->to_string());
           cfg.save(profile);
           return 1;
@@ -44,20 +44,20 @@ void ConfigManagerModule::registerCommandCallback(LogParserTerminal& lpt) {
 
       // Special case here, might want a better way to handle "big" config changes that pushing it from here
       // PS: we do it before setting config, that way if format is badly formated we don't save it
-      line_t global_focus_line = lpi->localToGlobalLineId(state.line_offset + state.cy);
+      line_t global_focus_line = cfn->localToGlobalLineId(state.line_offset + state.cy);
       bool need_cursor_move = false;
       if(key == CFG_LINE_FORMAT){
         std::unique_ptr<LineFormat> format = LineFormat::fromFormatString(val);
-        lpi->setLineFormat(std::move(format), global_focus_line);
+        cfn->setLineFormat(std::move(format), global_focus_line);
         need_cursor_move = true;
       }
       if(key == CFG_HIDE_BAD_FMT){
         bool hidden = val == "true";
-        lpi->setBadFormatAccepted(!hidden, global_focus_line);
+        cfn->setBadFormatAccepted(!hidden, global_focus_line);
         need_cursor_move = true;
       }
       if(need_cursor_move){
-        line_t new_local_id = lpi->globalToLocalLineId(global_focus_line);
+        line_t new_local_id = cfn->globalToLocalLineId(global_focus_line);
         if(new_local_id <= (line_t) state.cy){
           state.cy = new_local_id;
           state.line_offset = 0;
@@ -67,8 +67,8 @@ void ConfigManagerModule::registerCommandCallback(LogParserTerminal& lpt) {
       }
 
       ConfigHandler cfg;
-      LOG(1, "stored in lpi %s, absolute is %s\n", lpi->filename.data(), std::filesystem::canonical(lpi->filename).string().data());
-      std::string profile = cfg.getProfileForFile(std::filesystem::canonical(lpi->filename).string());
+      LOG(1, "stored in cfn %s, absolute is %s\n", cfn->filename.data(), std::filesystem::canonical(cfn->filename).string().data());
+      std::string profile = cfg.getProfileForFile(std::filesystem::canonical(cfn->filename).string());
       cfg.set(profile, key, val);
       cfg.save(profile);
 
@@ -79,7 +79,7 @@ void ConfigManagerModule::registerCommandCallback(LogParserTerminal& lpt) {
       std::string profile_name = subcmd.substr(7);
       trim(profile_name);
       ConfigHandler cfg;
-      std::string c9l_fn = std::filesystem::canonical(lpi->filename).string();
+      std::string c9l_fn = std::filesystem::canonical(cfn->filename).string();
       if(!cfg.copyProfileToNew(cfg.getProfileForFile(c9l_fn), profile_name)){
         throw std::runtime_error("Could NOT create new profile. Does'" + profile_name + "' already exist?");
       }
@@ -92,7 +92,7 @@ void ConfigManagerModule::registerCommandCallback(LogParserTerminal& lpt) {
       std::string profile_name = subcmd.substr(5);
       trim(profile_name);
       ConfigHandler cfg;
-      cfg.setProfileForFile(std::filesystem::canonical(lpi->filename).string(), profile_name);
+      cfg.setProfileForFile(std::filesystem::canonical(cfn->filename).string(), profile_name);
       
       state.line_offset = 0;
       state.cy = 0;
@@ -101,8 +101,8 @@ void ConfigManagerModule::registerCommandCallback(LogParserTerminal& lpt) {
       std::unique_ptr<LineFormat> line_format = LineFormat::fromFormatString(format_str);
       std::string filter_str = cfg.get(profile_name, CFG_FILTER);
       std::shared_ptr<LineFilter> line_filter = parse_filter_decl(filter_str, line_format.get());
-      lpi->setLineFormat(std::move(line_format), 0);
-      lpi->setFilter(line_filter);
+      cfn->setLineFormat(std::move(line_format), 0);
+      cfn->setFilter(line_filter);
       
       cfg.save(profile_name);
       lpt.m_profile = profile_name;

@@ -14,8 +14,8 @@
 
 TEST_CASE("updateDisplayState - offset 0 no filter") {
   setup();
-  auto* lpi = make_lpi();
-  LogParserTerminal term(lpi);
+  auto* cfn = make_cfn();
+  LogParserTerminal term(cfn);
   term.term_state.nrows = 25;
   term.term_state.ncols = 80;
   term.term_state.line_offset = 0;
@@ -25,15 +25,15 @@ TEST_CASE("updateDisplayState - offset 0 no filter") {
   REQUIRE(term.term_state.displayed_pls.size() == 24); // nrows - status_line
   for (int i = 0; i < 24; i++) {
     REQUIRE(term.term_state.displayed_pls[i] != nullptr);
-    REQUIRE(term.term_state.displayed_pls[i] == lpi->getLine(i).line);
+    REQUIRE(term.term_state.displayed_pls[i] == cfn->getLine(i).line);
   }
   teardown();
 }
 
 TEST_CASE("updateDisplayState - non-zero offset no filter") {
   setup();
-  auto* lpi = make_lpi();
-  LogParserTerminal term(lpi);
+  auto* cfn = make_cfn();
+  LogParserTerminal term(cfn);
   term.term_state.ncols = 80;
 
   SECTION("offset 5, nrows 15") {
@@ -43,7 +43,7 @@ TEST_CASE("updateDisplayState - non-zero offset no filter") {
 
     REQUIRE(term.term_state.displayed_pls.size() == 14);
     for (int i = 0; i < 14; i++) {
-      REQUIRE(term.term_state.displayed_pls[i] == lpi->getLine(i + 5).line);
+      REQUIRE(term.term_state.displayed_pls[i] == cfn->getLine(i + 5).line);
     }
   }
 
@@ -54,7 +54,7 @@ TEST_CASE("updateDisplayState - non-zero offset no filter") {
 
     REQUIRE(term.term_state.displayed_pls.size() == 14);
     for (int i = 0; i < 14; i++) {
-      REQUIRE(term.term_state.displayed_pls[i] == lpi->getLine(i + 20).line);
+      REQUIRE(term.term_state.displayed_pls[i] == cfn->getLine(i + 20).line);
     }
   }
 
@@ -65,7 +65,7 @@ TEST_CASE("updateDisplayState - non-zero offset no filter") {
 
     REQUIRE(term.term_state.displayed_pls.size() == 9);
     for (int i = 0; i < 9; i++) {
-      REQUIRE(term.term_state.displayed_pls[i] == lpi->getLine(i + 40).line);
+      REQUIRE(term.term_state.displayed_pls[i] == cfn->getLine(i + 40).line);
     }
   }
 
@@ -74,8 +74,8 @@ TEST_CASE("updateDisplayState - non-zero offset no filter") {
 
 TEST_CASE("updateDisplayState - INFO filter offset 0") {
   setup();
-  auto* lpi = make_info_filtered_lpi();
-  LogParserTerminal term(lpi);
+  auto* cfn = make_info_filtered_cfn();
+  LogParserTerminal term(cfn);
   term.term_state.nrows = 20;
   term.term_state.ncols = 80;
   term.term_state.line_offset = 0;
@@ -86,7 +86,7 @@ TEST_CASE("updateDisplayState - INFO filter offset 0") {
   // First 14 entries should match the filtered lines
   for (int i = 0; i < FILTERED_LINES; i++) {
     REQUIRE(term.term_state.displayed_pls[i] != nullptr);
-    REQUIRE(term.term_state.displayed_pls[i] == lpi->getLine(i).line);
+    REQUIRE(term.term_state.displayed_pls[i] == cfn->getLine(i).line);
     REQUIRE(SV_TO_STR(term.term_state.displayed_pls[i]->raw_line) ==
             SV_TO_STR(info_and_bf_lines[i]));
   }
@@ -99,8 +99,8 @@ TEST_CASE("updateDisplayState - INFO filter offset 0") {
 
 TEST_CASE("updateDisplayState - INFO filter non-zero offset") {
   setup();
-  auto* lpi = make_info_filtered_lpi();
-  LogParserTerminal term(lpi);
+  auto* cfn = make_info_filtered_cfn();
+  LogParserTerminal term(cfn);
   term.term_state.nrows = 20;
   term.term_state.ncols = 80;
 
@@ -139,8 +139,8 @@ TEST_CASE("updateDisplayState - INFO filter non-zero offset") {
 
 TEST_CASE("updateDisplayState - offset past end of file no filter") {
   setup();
-  auto* lpi = make_lpi();
-  LogParserTerminal term(lpi);
+  auto* cfn = make_cfn();
+  LogParserTerminal term(cfn);
   term.term_state.nrows = 10;
   term.term_state.ncols = 80;
   term.term_state.line_offset = 100; // well past 62 lines
@@ -156,8 +156,8 @@ TEST_CASE("updateDisplayState - offset past end of file no filter") {
 
 TEST_CASE("updateDisplayState - offset past end of filtered file") {
   setup();
-  auto* lpi = make_info_filtered_lpi();
-  LogParserTerminal term(lpi);
+  auto* cfn = make_info_filtered_cfn();
+  LogParserTerminal term(cfn);
   term.term_state.nrows = 10;
   term.term_state.ncols = 80;
   term.term_state.line_offset = 50; // well past 14 filtered lines
@@ -173,8 +173,8 @@ TEST_CASE("updateDisplayState - offset past end of filtered file") {
 
 TEST_CASE("updateDisplayState - partial page near end of file") {
   setup();
-  auto* lpi = make_lpi();
-  LogParserTerminal term(lpi);
+  auto* cfn = make_cfn();
+  LogParserTerminal term(cfn);
   term.term_state.nrows = 15; // 14 displayed rows
   term.term_state.ncols = 80;
   term.term_state.line_offset = 55; // lines 55-61 exist (7 lines), 62-68 don't
@@ -185,7 +185,7 @@ TEST_CASE("updateDisplayState - partial page near end of file") {
   int existing = TOTAL_LINES - 55; // 7
   for (int i = 0; i < existing; i++) {
     REQUIRE(term.term_state.displayed_pls[i] != nullptr);
-    REQUIRE(term.term_state.displayed_pls[i] == lpi->getLine(i + 55).line);
+    REQUIRE(term.term_state.displayed_pls[i] == cfn->getLine(i + 55).line);
   }
   for (int i = existing; i < 14; i++) {
     REQUIRE(term.term_state.displayed_pls[i] == nullptr);
@@ -195,8 +195,8 @@ TEST_CASE("updateDisplayState - partial page near end of file") {
 
 TEST_CASE("updateDisplayState - partial page near end of filtered file") {
   setup();
-  auto* lpi = make_info_filtered_lpi();
-  LogParserTerminal term(lpi);
+  auto* cfn = make_info_filtered_cfn();
+  LogParserTerminal term(cfn);
   term.term_state.nrows = 10; // 9 displayed rows
   term.term_state.ncols = 80;
   term.term_state.line_offset = 10; // filtered lines 10-13 exist (4 lines)
@@ -216,8 +216,8 @@ TEST_CASE("updateDisplayState - partial page near end of filtered file") {
 
 TEST_CASE("updateDisplayState - nrows=2 shows exactly one line") {
   setup();
-  auto* lpi = make_lpi();
-  LogParserTerminal term(lpi);
+  auto* cfn = make_cfn();
+  LogParserTerminal term(cfn);
   term.term_state.nrows = 2; // 1 status line + 1 content line
   term.term_state.ncols = 80;
   term.term_state.line_offset = 0;
@@ -226,14 +226,14 @@ TEST_CASE("updateDisplayState - nrows=2 shows exactly one line") {
 
   REQUIRE(term.term_state.displayed_pls.size() == 1);
   REQUIRE(term.term_state.displayed_pls[0] != nullptr);
-  REQUIRE(term.term_state.displayed_pls[0] == lpi->getLine(0).line);
+  REQUIRE(term.term_state.displayed_pls[0] == cfn->getLine(0).line);
   teardown();
 }
 
 TEST_CASE("updateDisplayState - nrows=1 shows no content lines") {
   setup();
-  auto* lpi = make_lpi();
-  LogParserTerminal term(lpi);
+  auto* cfn = make_cfn();
+  LogParserTerminal term(cfn);
   term.term_state.nrows = 1; // only status line
   term.term_state.ncols = 80;
   term.term_state.line_offset = 0;
@@ -250,8 +250,8 @@ TEST_CASE("updateDisplayState - nrows=1 shows no content lines") {
 
 TEST_CASE("updateDisplayState - info_col_size matches line numbers") {
   setup();
-  auto* lpi = make_lpi();
-  LogParserTerminal term(lpi);
+  auto* cfn = make_cfn();
+  LogParserTerminal term(cfn);
   term.term_state.ncols = 80;
 
   SECTION("small line numbers") {
@@ -286,8 +286,8 @@ TEST_CASE("updateDisplayState - info_col_size matches line numbers") {
 
 TEST_CASE("updateDisplayState - info_col_size with filter") {
   setup();
-  auto* lpi = make_info_filtered_lpi();
-  LogParserTerminal term(lpi);
+  auto* cfn = make_info_filtered_cfn();
+  LogParserTerminal term(cfn);
   term.term_state.nrows = 20;
   term.term_state.ncols = 80;
   term.term_state.line_offset = 0;
@@ -306,8 +306,8 @@ TEST_CASE("updateDisplayState - info_col_size with local line numbers") {
   std::string orig = cfg.get(CFG_COMMON_PROFILE, CFG_LINE_NUM_MODE);
   cfg.set(CFG_COMMON_PROFILE, CFG_LINE_NUM_MODE, "local");
 
-  auto* lpi = make_lpi();
-  LogParserTerminal term(lpi);
+  auto* cfn = make_cfn();
+  LogParserTerminal term(cfn);
   term.term_state.nrows = 25;
   term.term_state.ncols = 80;
   term.term_state.line_offset = 0;
@@ -328,8 +328,8 @@ TEST_CASE("updateDisplayState - info_col_size with local line numbers") {
 
 TEST_CASE("drawRows - frame contains text of displayed lines") {
   setup();
-  auto* lpi = make_lpi();
-  LogParserTerminal term(lpi);
+  auto* cfn = make_cfn();
+  LogParserTerminal term(cfn);
   term.term_state.nrows = 10;
   term.term_state.ncols = 120;
   term.term_state.line_offset = 0;
@@ -350,8 +350,8 @@ TEST_CASE("drawRows - frame contains text of displayed lines") {
 
 TEST_CASE("drawRows - offset changes visible line text") {
   setup();
-  auto* lpi = make_lpi();
-  LogParserTerminal term(lpi);
+  auto* cfn = make_cfn();
+  LogParserTerminal term(cfn);
   term.term_state.nrows = 5;
   term.term_state.ncols = 120;
 
@@ -370,12 +370,12 @@ TEST_CASE("drawRows - offset changes visible line text") {
   std::string frame_at_30 = term.frame_str;
 
   // Line at offset 0 should be in frame_at_0 but not frame_at_30
-  std::string first_line(lpi->getLine(0).line->raw_line);
+  std::string first_line(cfn->getLine(0).line->raw_line);
   REQUIRE(frame_at_0.find(first_line) != std::string::npos);
   REQUIRE(frame_at_30.find(first_line) == std::string::npos);
 
   // Line at offset 30 should be in frame_at_30 but not frame_at_0
-  std::string line_30(lpi->getLine(30).line->raw_line);
+  std::string line_30(cfn->getLine(30).line->raw_line);
   REQUIRE(frame_at_30.find(line_30) != std::string::npos);
   REQUIRE(frame_at_0.find(line_30) == std::string::npos);
 
@@ -384,8 +384,8 @@ TEST_CASE("drawRows - offset changes visible line text") {
 
 TEST_CASE("drawRows - INFO filter: only filtered lines appear") {
   setup();
-  auto* lpi = make_info_filtered_lpi();
-  LogParserTerminal term(lpi);
+  auto* cfn = make_info_filtered_cfn();
+  LogParserTerminal term(cfn);
   term.term_state.nrows = 20;
   term.term_state.ncols = 120;
   term.term_state.line_offset = 0;
@@ -407,8 +407,8 @@ TEST_CASE("drawRows - INFO filter: only filtered lines appear") {
 
 TEST_CASE("drawRows - line numbers appear with tilde separator") {
   setup();
-  auto* lpi = make_lpi();
-  LogParserTerminal term(lpi);
+  auto* cfn = make_cfn();
+  LogParserTerminal term(cfn);
   term.term_state.nrows = 6;
   term.term_state.ncols = 120;
   term.term_state.line_offset = 0;
@@ -433,8 +433,8 @@ TEST_CASE("drawRows - local line numbers are sequential") {
   std::string orig = cfg.get(CFG_COMMON_PROFILE, CFG_LINE_NUM_MODE);
   cfg.set(CFG_COMMON_PROFILE, CFG_LINE_NUM_MODE, "local");
 
-  auto* lpi = make_lpi();
-  LogParserTerminal term(lpi);
+  auto* cfn = make_cfn();
+  LogParserTerminal term(cfn);
   term.term_state.nrows = 6;
   term.term_state.ncols = 120;
   term.term_state.line_offset = 10;
@@ -456,8 +456,8 @@ TEST_CASE("drawRows - local line numbers are sequential") {
 
 TEST_CASE("drawRows - empty rows past end of file") {
   setup();
-  auto* lpi = make_lpi();
-  LogParserTerminal term(lpi);
+  auto* cfn = make_cfn();
+  LogParserTerminal term(cfn);
   term.term_state.nrows = 10;
   term.term_state.ncols = 80;
   term.term_state.line_offset = 100; // past end
@@ -477,8 +477,8 @@ TEST_CASE("drawRows - empty rows past end of file") {
 
 TEST_CASE("drawRows - lines truncated at narrow ncols") {
   setup();
-  auto* lpi = make_lpi();
-  LogParserTerminal term(lpi);
+  auto* cfn = make_cfn();
+  LogParserTerminal term(cfn);
   term.term_state.nrows = 3;
   term.term_state.ncols = 30; // very narrow
   term.term_state.line_offset = 0;
@@ -509,8 +509,8 @@ TEST_CASE("drawRows - hide_bad_fmt hides malformed lines") {
   std::string orig = cfg.get(CFG_COMMON_PROFILE, CFG_HIDE_BAD_FMT);
   cfg.set(CFG_COMMON_PROFILE, CFG_HIDE_BAD_FMT, "true");
 
-  auto* lpi = make_lpi();
-  LogParserTerminal term(lpi);
+  auto* cfn = make_cfn();
+  LogParserTerminal term(cfn);
   // Binary lines are at global positions 25-28 (0-indexed)
   term.term_state.nrows = 10;
   term.term_state.ncols = 120;
@@ -544,8 +544,8 @@ TEST_CASE("drawRows - bad format lines visible when not hidden") {
   std::string orig = cfg.get(CFG_COMMON_PROFILE, CFG_HIDE_BAD_FMT);
   cfg.set(CFG_COMMON_PROFILE, CFG_HIDE_BAD_FMT, "false");
 
-  auto* lpi = make_lpi();
-  LogParserTerminal term(lpi);
+  auto* cfn = make_cfn();
+  LogParserTerminal term(cfn);
   term.term_state.nrows = 10;
   term.term_state.ncols = 120;
   term.term_state.line_offset = 25; // starts at first binary line
@@ -564,8 +564,8 @@ TEST_CASE("drawRows - bad format lines visible when not hidden") {
 
 TEST_CASE("drawRows - status line reflects input mode") {
   setup();
-  auto* lpi = make_lpi();
-  LogParserTerminal term(lpi);
+  auto* cfn = make_cfn();
+  LogParserTerminal term(cfn);
   term.term_state.nrows = 5;
   term.term_state.ncols = 120;
   term.term_state.line_offset = 0;
@@ -592,8 +592,8 @@ TEST_CASE("drawRows - status line reflects input mode") {
 
 TEST_CASE("drawRows - full page vs partial page line count") {
   setup();
-  auto* lpi = make_info_filtered_lpi();
-  LogParserTerminal term(lpi);
+  auto* cfn = make_info_filtered_cfn();
+  LogParserTerminal term(cfn);
   term.term_state.nrows = 20;
   term.term_state.ncols = 120;
   term.term_state.line_offset = 0;
@@ -617,8 +617,8 @@ TEST_CASE("drawRows - full page vs partial page line count") {
 
 TEST_CASE("drawRows - consistent between repeated calls") {
   setup();
-  auto* lpi = make_lpi();
-  LogParserTerminal term(lpi);
+  auto* cfn = make_cfn();
+  LogParserTerminal term(cfn);
   term.term_state.nrows = 10;
   term.term_state.ncols = 100;
   term.term_state.line_offset = 5;
@@ -640,8 +640,8 @@ TEST_CASE("drawRows - consistent between repeated calls") {
 
 TEST_CASE("drawRows - long raw input not truncated") {
   setup();
-  auto* lpi = make_lpi();
-  LogParserTerminal term(lpi);
+  auto* cfn = make_cfn();
+  LogParserTerminal term(cfn);
   term.term_state.nrows = 5;
   term.term_state.ncols = 200;
   term.term_state.line_offset = 0;
@@ -668,8 +668,8 @@ TEST_CASE("drawRows - long raw input not truncated") {
 
 TEST_CASE("drawRows - vert_line_offset hides beginning of lines") {
   setup();
-  auto* lpi = make_lpi();
-  LogParserTerminal term(lpi);
+  auto* cfn = make_cfn();
+  LogParserTerminal term(cfn);
   term.term_state.nrows = 5;
   term.term_state.ncols = 120;
   term.term_state.line_offset = 0;
@@ -697,8 +697,8 @@ TEST_CASE("drawRows - vert_line_offset hides beginning of lines") {
 
 TEST_CASE("drawRows - vert_line_offset 0 shows line from start") {
   setup();
-  auto* lpi = make_lpi();
-  LogParserTerminal term(lpi);
+  auto* cfn = make_cfn();
+  LogParserTerminal term(cfn);
   term.term_state.nrows = 5;
   term.term_state.ncols = 120;
   term.term_state.line_offset = 0;
@@ -717,8 +717,8 @@ TEST_CASE("drawRows - vert_line_offset 0 shows line from start") {
 
 TEST_CASE("drawRows - vert_line_offset beyond line length renders blank") {
   setup();
-  auto* lpi = make_lpi();
-  LogParserTerminal term(lpi);
+  auto* cfn = make_cfn();
+  LogParserTerminal term(cfn);
   term.term_state.nrows = 3;
   term.term_state.ncols = 120;
   term.term_state.line_offset = 0;
@@ -743,8 +743,8 @@ TEST_CASE("drawRows - vert_line_offset beyond line length renders blank") {
 
 TEST_CASE("drawRows - vert_line_offset shifts visible window") {
   setup();
-  auto* lpi = make_lpi();
-  LogParserTerminal term(lpi);
+  auto* cfn = make_cfn();
+  LogParserTerminal term(cfn);
   term.term_state.nrows = 5;
   term.term_state.ncols = 120;
   term.term_state.line_offset = 0;
@@ -779,8 +779,8 @@ TEST_CASE("drawRows - vert_line_offset shifts visible window") {
 
 TEST_CASE("drawRows - vert_line_offset with highlight word visible") {
   setup();
-  auto* lpi = make_lpi();
-  LogParserTerminal term(lpi);
+  auto* cfn = make_cfn();
+  LogParserTerminal term(cfn);
   term.term_state.nrows = 10;
   term.term_state.ncols = 120;
   term.term_state.line_offset = 0;
@@ -799,8 +799,8 @@ TEST_CASE("drawRows - vert_line_offset with highlight word visible") {
 
 TEST_CASE("drawRows - vert_line_offset past highlight word skips highlighting") {
   setup();
-  auto* lpi = make_lpi();
-  LogParserTerminal term(lpi);
+  auto* cfn = make_cfn();
+  LogParserTerminal term(cfn);
   // Use only first few lines — line 0 starts with "0322 085338 TRACE"
   term.term_state.nrows = 3;
   term.term_state.ncols = 120;
@@ -824,8 +824,8 @@ TEST_CASE("drawRows - vert_line_offset past highlight word skips highlighting") 
 
 TEST_CASE("drawRows - consistent with vert_line_offset between repeated calls") {
   setup();
-  auto* lpi = make_lpi();
-  LogParserTerminal term(lpi);
+  auto* cfn = make_cfn();
+  LogParserTerminal term(cfn);
   term.term_state.nrows = 10;
   term.term_state.ncols = 100;
   term.term_state.line_offset = 5;

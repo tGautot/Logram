@@ -1,5 +1,5 @@
-#ifndef FILE_PARSER_HPP
-#define FILE_PARSER_HPP
+#ifndef CACHED_FILTERED_FILE_NAVIGATOR_HPP
+#define CACHED_FILTERED_FILE_NAVIGATOR_HPP
 
 
 #include "common.hpp"
@@ -43,7 +43,7 @@ typedef struct {
 } line_info_t;
 
 
-class LogParserInterface {
+class CachedFilteredFileNavigator {
 private:
   line_t  known_first_line=0;
   FilteredFileReader* ffr;
@@ -60,8 +60,8 @@ private:
   line_t known_last_line=LINE_T_MAX;
   std::vector<line_t> local_to_global_id;
 
-  LogParserInterface(std::string fname, std::unique_ptr<LineFormat> fmt, std::shared_ptr<LineFilter> fltr, int bsize = 1000);
-  ~LogParserInterface();
+  CachedFilteredFileNavigator(std::string fname, std::unique_ptr<LineFormat> fmt, std::shared_ptr<LineFilter> fltr, int bsize = 1000);
+  ~CachedFilteredFileNavigator();
 
   void setLineFormat(std::unique_ptr<LineFormat> lf, line_t global_anchor_line);
   LineFormat* getLineFormat();

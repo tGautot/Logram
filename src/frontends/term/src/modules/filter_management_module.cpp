@@ -13,18 +13,18 @@
 void FilterManagementModule::registerUserInputMapping(LogParserTerminal&){}
 void FilterManagementModule::registerUserActionCallback(LogParserTerminal&) {}
 void FilterManagementModule::registerCommandCallback(LogParserTerminal& lpt) {
-  lpt.registerCommandCallback([](std::string& cmd, term_state_t& state, LogParserInterface* lpi) -> int{
+  lpt.registerCommandCallback([](std::string& cmd, term_state_t& state, CachedFilteredFileNavigator* cfn) -> int{
     
-    auto update_term_state_with_filter = [&state, lpi](std::shared_ptr<LineFilter> filter){
+    auto update_term_state_with_filter = [&state, cfn](std::shared_ptr<LineFilter> filter){
       // When setting a new filter the whole global->local mapping changes
       // That means whichever line the cursor is on right now might not make any sense after applying the filter
       // (e.g. cursor is on last line without filter -> add new filter -> cursor will be on nothing)
       // So we must apply the filter, parse the file until the global line on which the filter lives
       // Then check which new local line that global line maps to and update the terminal state to now have the cursor there
       LOG(1, "Setting new filter to %p\n", filter.get());
-      line_t global_focus_line = lpi->localToGlobalLineId(state.line_offset + state.cy);
-      lpi->setFilter(filter, global_focus_line);
-      line_t new_local_id = lpi->globalToLocalLineId(global_focus_line);
+      line_t global_focus_line = cfn->localToGlobalLineId(state.line_offset + state.cy);
+      cfn->setFilter(filter, global_focus_line);
+      line_t new_local_id = cfn->globalToLocalLineId(global_focus_line);
       if(new_local_id <= (line_t) state.cy){
         state.cy = new_local_id;
         state.line_offset = 0;
@@ -39,7 +39,7 @@ void FilterManagementModule::registerCommandCallback(LogParserTerminal& lpt) {
       return 1;
     }
 
-    LineFormat* lf = lpi->getLineFormat() ;
+    LineFormat* lf = cfn->getLineFormat() ;
     if(lf == nullptr){
       throw std::runtime_error("Cannot set filter without having specified a line format");
     }
@@ -74,7 +74,7 @@ void FilterManagementModule::registerCommandCallback(LogParserTerminal& lpt) {
       
       
       
-      std::shared_ptr<LineFilter> old_filter = lpi->getFilter();
+      std::shared_ptr<LineFilter> old_filter = cfn->getFilter();
       if(old_filter == nullptr) {
         LOG(1, "No filter yet, adding it\n");
         if(short_cmd == ":fout"){

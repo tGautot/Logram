@@ -9,9 +9,9 @@
 #define ACTION_START_SEARCH 110
 
 // Helper: build a terminal with TextSearchModule fully registered and display populated
-static LogParserTerminal make_search_term(LogParserInterface* lpi, int nrows, int ncols,
+static LogParserTerminal make_search_term(CachedFilteredFileNavigator* cfn, int nrows, int ncols,
                                            int cy, uint64_t line_offset) {
-  LogParserTerminal term(lpi);
+  LogParserTerminal term(cfn);
   term.term_state.nrows = nrows;
   term.term_state.ncols = ncols;
   term.term_state.cy = cy;
@@ -39,8 +39,8 @@ static void trigger_search(LogParserTerminal& term, const std::string& pattern) 
 
 TEST_CASE("TextSearchModule - input mappings") {
   setup();
-  auto* lpi = make_lpi();
-  LogParserTerminal term(lpi);
+  auto* cfn = make_cfn();
+  LogParserTerminal term(cfn);
 
   TextSearchModule mod;
   mod.registerUserInputMapping(term);
@@ -69,8 +69,8 @@ TEST_CASE("TextSearchModule - input mappings") {
 
 TEST_CASE("TextSearchModule - / sets RAW input mode with :? prefix") {
   setup();
-  auto* lpi = make_lpi();
-  auto term = make_search_term(lpi, 25, 80, 0, 0);
+  auto* cfn = make_cfn();
+  auto term = make_search_term(cfn, 25, 80, 0, 0);
 
   bool partial = false;
   term.handleUserAction(term.matchInputSequence("/", partial));
@@ -87,8 +87,8 @@ TEST_CASE("TextSearchModule - / sets RAW input mode with :? prefix") {
 
 TEST_CASE("TextSearchModule - forward search jumps to match") {
   setup();
-  auto* lpi = make_lpi();
-  auto term = make_search_term(lpi, 25, 80, 0, 0);
+  auto* cfn = make_cfn();
+  auto term = make_search_term(cfn, 25, 80, 0, 0);
 
   // "LASTLINE" is on global/local line 61
   trigger_search(term, "LASTLINE");
@@ -101,8 +101,8 @@ TEST_CASE("TextSearchModule - forward search jumps to match") {
 
 TEST_CASE("TextSearchModule - forward search skips current line") {
   setup();
-  auto* lpi = make_lpi();
-  auto term = make_search_term(lpi, 25, 80, 0, 0);
+  auto* cfn = make_cfn();
+  auto term = make_search_term(cfn, 25, 80, 0, 0);
 
   // "source address" appears on global lines 0, 21, 37, 58.
   // Cursor is on line 0 → forward starts from line 1.
@@ -116,8 +116,8 @@ TEST_CASE("TextSearchModule - forward search skips current line") {
 
 TEST_CASE("TextSearchModule - no match leaves cursor unchanged") {
   setup();
-  auto* lpi = make_lpi();
-  auto term = make_search_term(lpi, 25, 80, 5, 10);
+  auto* cfn = make_cfn();
+  auto term = make_search_term(cfn, 25, 80, 5, 10);
 
   trigger_search(term, "ZZZZNOTFOUND");
 
@@ -128,8 +128,8 @@ TEST_CASE("TextSearchModule - no match leaves cursor unchanged") {
 
 TEST_CASE("TextSearchModule - search sets cx to match position") {
   setup();
-  auto* lpi = make_lpi();
-  auto term = make_search_term(lpi, 25, 80, 0, 0);
+  auto* cfn = make_cfn();
+  auto term = make_search_term(cfn, 25, 80, 0, 0);
 
   trigger_search(term, "LASTLINE");
 
@@ -147,8 +147,8 @@ TEST_CASE("TextSearchModule - search sets cx to match position") {
 
 TEST_CASE("TextSearchModule - search next finds subsequent match") {
   setup();
-  auto* lpi = make_lpi();
-  auto term = make_search_term(lpi, 25, 80, 0, 0);
+  auto* cfn = make_cfn();
+  auto term = make_search_term(cfn, 25, 80, 0, 0);
 
   // "Ioctl" appears on global lines 20, 36, 57
   trigger_search(term, "Ioctl");
@@ -168,8 +168,8 @@ TEST_CASE("TextSearchModule - search next finds subsequent match") {
 
 TEST_CASE("TextSearchModule - search prev goes backward") {
   setup();
-  auto* lpi = make_lpi();
-  auto term = make_search_term(lpi, 25, 80, 0, 0);
+  auto* cfn = make_cfn();
+  auto term = make_search_term(cfn, 25, 80, 0, 0);
 
   // Search forward to "Ioctl" → lands on global 20
   trigger_search(term, "Ioctl");
@@ -197,8 +197,8 @@ TEST_CASE("TextSearchModule - filtered: search uses local line offset") {
   // INFO filter: 14 valid lines (local 0-13)
   // "Ioctl" appears on INFO lines at global 20, 36, 57
   // which are local 3, 9, 13
-  auto* lpi = make_info_filtered_lpi();
-  auto term = make_search_term(lpi, 25, 80, 0, 0);
+  auto* cfn = make_info_filtered_cfn();
+  auto term = make_search_term(cfn, 25, 80, 0, 0);
 
   // First INFO "Ioctl" match is local 3 (global 20)
   trigger_search(term, "Ioctl");
@@ -210,8 +210,8 @@ TEST_CASE("TextSearchModule - filtered: search uses local line offset") {
 
 TEST_CASE("TextSearchModule - filtered: search next uses local offset") {
   setup();
-  auto* lpi = make_info_filtered_lpi();
-  auto term = make_search_term(lpi, 25, 80, 0, 0);
+  auto* cfn = make_info_filtered_cfn();
+  auto term = make_search_term(cfn, 25, 80, 0, 0);
 
   // First match: local 3 (global 20)
   trigger_search(term, "Ioctl");

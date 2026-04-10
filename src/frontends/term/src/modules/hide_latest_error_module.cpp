@@ -7,7 +7,7 @@ void HideLatestErrorModule::registerUserInputMapping(LogParserTerminal& lpt){
   lpt.registerUserInputMapping(std::string({(char)13}) /*Enter*/, HIDE_ERROR_ACTION);
 }
 void HideLatestErrorModule::registerUserActionCallback(LogParserTerminal& lpt) {
-  lpt.registerActionCallback([](user_action_t act, term_state_t& term_state, LogParserInterface* lpi)-> int{
+  lpt.registerActionCallback([](user_action_t act, term_state_t& term_state, CachedFilteredFileNavigator* cfn)-> int{
     if(act == HIDE_ERROR_ACTION){
       term_state.latest_error = "";
       return 1;

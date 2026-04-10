@@ -1,5 +1,5 @@
 #include "common.hpp"
-#include "log_parser_interface.hpp"
+#include "cached_filtered_file_navigator.hpp"
 #include "log_parser_terminal.hpp"
 #include "processed_line.hpp"
 #include "terminal_modules.hpp"
@@ -21,11 +21,11 @@ extern "C" {
 static bool searching = false;
 static std::string match_str = "";
 
-static line_t search(term_state_t& state, LogParserInterface* lpi, bool forward){
+static line_t search(term_state_t& state, CachedFilteredFileNavigator* cfn, bool forward){
   
   line_t cursor_start_line = state.line_offset + state.cy+(forward && searching);
   LOG(3, "Commanding next search to start at global line %lu\n", cursor_start_line);
-  auto [ line_num, char_pos] = lpi->findNextOccurence(match_str, cursor_start_line, forward);
+  auto [ line_num, char_pos] = cfn->findNextOccurence(match_str, cursor_start_line, forward);
   LOG(3, "Found match at local line %llu\n", line_num);
   if(line_num == LINE_T_MAX){
     throw std::runtime_error("No more matches");
@@ -70,13 +70,13 @@ void TextSearchModule::registerUserInputMapping(LogParserTerminal& term) {
   term.registerUserInputMapping("/", ACTION_START_SEARCH);
 };
 void TextSearchModule::registerUserActionCallback(LogParserTerminal& term) {
-  term.registerActionCallback([](user_action_t action, term_state_t& state, LogParserInterface* lpi) -> int{
+  term.registerActionCallback([](user_action_t action, term_state_t& state, CachedFilteredFileNavigator* cfn) -> int{
     if(!searching) return 0;
     if(action != ACTION_SEARCH_NEXT && action != ACTION_SEARCH_PREV) return 0;
-    search( state, lpi, action == ACTION_SEARCH_NEXT);
+    search( state, cfn, action == ACTION_SEARCH_NEXT);
     return 0;
   });
-  term.registerActionCallback([](user_action_t action, term_state_t& state, LogParserInterface* lpi) -> int{
+  term.registerActionCallback([](user_action_t action, term_state_t& state, CachedFilteredFileNavigator* cfn) -> int{
     if(action == ACTION_START_SEARCH){
       // Setup search mode manually
       state.input_mode = RAW;
@@ -87,14 +87,14 @@ void TextSearchModule::registerUserActionCallback(LogParserTerminal& term) {
   });
 };
 void TextSearchModule::registerCommandCallback(LogParserTerminal& term){
-  term.registerCommandCallback([](std::string& cmd, term_state_t& state, LogParserInterface* lpi) -> int {
+  term.registerCommandCallback([](std::string& cmd, term_state_t& state, CachedFilteredFileNavigator* cfn) -> int {
     LOG_ENTRY("LAMBDA search module command callback search");
     size_t substr_pos = cmd.find(":?");
     LOG_FCT(3, "Full command is %s, found search query at pos %lu\n", cmd.data(), substr_pos);
     if(substr_pos == 0){
       match_str = cmd.substr(2);
       state.highlight_word = match_str;
-      line_t l = search(state, lpi, true);
+      line_t l = search(state, cfn, true);
       // Set searching=true after first search, to let the search know if it is a first call or not
       searching = true;
       LOG_FCT(3, "Command is indeed for search, looking for string %s", match_str.data());

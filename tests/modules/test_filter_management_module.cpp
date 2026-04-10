@@ -20,8 +20,8 @@ static std::unique_ptr<LineFormat> makeSimpleFormat() {
 
 // Build a LogParserTerminal with FilterManagementModule registered,
 // backed by the sample.log LPI used across the test suite.
-static LogParserTerminal make_filter_term(LogParserInterface* lpi) {
-  LogParserTerminal term(lpi);
+static LogParserTerminal make_filter_term(CachedFilteredFileNavigator* cfn) {
+  LogParserTerminal term(cfn);
   term.term_state.nrows = 20;
   term.term_state.ncols = 120;
   term.term_state.cy = 0;
@@ -598,75 +598,75 @@ TEST_CASE("parse_filter_decl - line_num with non-numeric value throws") {
 
 TEST_CASE("FilterManagementModule - :fclear removes filter") {
   setup();
-  LogParserInterface* lpi = make_info_filtered_lpi();
-  auto term = make_filter_term(lpi);
+  CachedFilteredFileNavigator* cfn = make_info_filtered_cfn();
+  auto term = make_filter_term(cfn);
 
   // Pre-condition: there is an active filter
-  REQUIRE(lpi->getFilter() != nullptr);
+  REQUIRE(cfn->getFilter() != nullptr);
 
   send_cmd(term, ":fclear");
-  REQUIRE(lpi->getFilter() == nullptr);
+  REQUIRE(cfn->getFilter() == nullptr);
 
-  delete lpi;
+  delete cfn;
   teardown();
 }
 
 TEST_CASE("FilterManagementModule - :fset sets a new filter") {
   setup();
-  LogParserInterface* lpi = make_lpi();
-  auto term = make_filter_term(lpi);
+  CachedFilteredFileNavigator* cfn = make_cfn();
+  auto term = make_filter_term(cfn);
 
-  REQUIRE(lpi->getFilter() == nullptr);
+  REQUIRE(cfn->getFilter() == nullptr);
 
   send_cmd(term, ":fset Level EQ INFO");
-  REQUIRE(lpi->getFilter() != nullptr);
+  REQUIRE(cfn->getFilter() != nullptr);
 
-  delete lpi;
+  delete cfn;
   teardown();
 }
 
 TEST_CASE("FilterManagementModule - :fset replaces existing filter") {
   setup();
-  LogParserInterface* lpi = make_info_filtered_lpi();
-  auto term = make_filter_term(lpi);
+  CachedFilteredFileNavigator* cfn = make_info_filtered_cfn();
+  auto term = make_filter_term(cfn);
 
-  auto old_filter = lpi->getFilter();
+  auto old_filter = cfn->getFilter();
   REQUIRE(old_filter != nullptr);
 
   send_cmd(term, ":fset Level EQ TRACE");
-  auto new_filter = lpi->getFilter();
+  auto new_filter = cfn->getFilter();
   REQUIRE(new_filter != nullptr);
   REQUIRE(new_filter != old_filter);
 
-  delete lpi;
+  delete cfn;
   teardown();
 }
 
 TEST_CASE("FilterManagementModule - :fset line_num CT sets LineNumberFilter") {
   setup();
-  LogParserInterface* lpi = make_lpi();
-  auto term = make_filter_term(lpi);
+  CachedFilteredFileNavigator* cfn = make_cfn();
+  auto term = make_filter_term(cfn);
 
   send_cmd(term, ":fset line_num CT 5,10");
-  auto filter = lpi->getFilter();
+  auto filter = cfn->getFilter();
   REQUIRE(filter != nullptr);
   auto* lnf = dynamic_cast<LineNumberFilter*>(filter.get());
   REQUIRE(lnf != nullptr);
   REQUIRE(lnf->line_from == 5);
   REQUIRE(lnf->line_to == 10);
 
-  delete lpi;
+  delete cfn;
   teardown();
 }
 
 TEST_CASE("FilterManagementModule - :f ANDs with existing filter") {
   setup();
-  LogParserInterface* lpi = make_info_filtered_lpi();
-  auto term = make_filter_term(lpi);
+  CachedFilteredFileNavigator* cfn = make_info_filtered_cfn();
+  auto term = make_filter_term(cfn);
 
   // Start with Level==INFO filter, add Mesg CONTAINS "Ioctl"
   send_cmd(term, ":f Mesg CT Ioctl");
-  auto filter = lpi->getFilter();
+  auto filter = cfn->getFilter();
   REQUIRE(filter != nullptr);
 
   // The combined filter should be narrower — verify it's a CombinedFilter
@@ -674,92 +674,92 @@ TEST_CASE("FilterManagementModule - :f ANDs with existing filter") {
   REQUIRE(combined != nullptr);
   REQUIRE(combined->op == BitwiseOp::AND);
 
-  delete lpi;
+  delete cfn;
   teardown();
 }
 
 TEST_CASE("FilterManagementModule - :fadd ANDs with existing filter") {
   setup();
-  LogParserInterface* lpi = make_info_filtered_lpi();
-  auto term = make_filter_term(lpi);
+  CachedFilteredFileNavigator* cfn = make_info_filtered_cfn();
+  auto term = make_filter_term(cfn);
 
   send_cmd(term, ":fadd Mesg CT Ioctl");
-  auto filter = lpi->getFilter();
+  auto filter = cfn->getFilter();
   auto* combined = dynamic_cast<CombinedFilter*>(filter.get());
   REQUIRE(combined != nullptr);
   REQUIRE(combined->op == BitwiseOp::AND);
 
-  delete lpi;
+  delete cfn;
   teardown();
 }
 
 TEST_CASE("FilterManagementModule - :fand ANDs with existing filter") {
   setup();
-  LogParserInterface* lpi = make_info_filtered_lpi();
-  auto term = make_filter_term(lpi);
+  CachedFilteredFileNavigator* cfn = make_info_filtered_cfn();
+  auto term = make_filter_term(cfn);
 
   send_cmd(term, ":fand Mesg CT Ioctl");
-  auto filter = lpi->getFilter();
+  auto filter = cfn->getFilter();
   auto* combined = dynamic_cast<CombinedFilter*>(filter.get());
   REQUIRE(combined != nullptr);
   REQUIRE(combined->op == BitwiseOp::AND);
 
-  delete lpi;
+  delete cfn;
   teardown();
 }
 
 TEST_CASE("FilterManagementModule - :for ORs with existing filter") {
   setup();
-  LogParserInterface* lpi = make_info_filtered_lpi();
-  auto term = make_filter_term(lpi);
+  CachedFilteredFileNavigator* cfn = make_info_filtered_cfn();
+  auto term = make_filter_term(cfn);
 
   send_cmd(term, ":for Level EQ TRACE");
-  auto filter = lpi->getFilter();
+  auto filter = cfn->getFilter();
   auto* combined = dynamic_cast<CombinedFilter*>(filter.get());
   REQUIRE(combined != nullptr);
   REQUIRE(combined->op == BitwiseOp::OR);
 
-  delete lpi;
+  delete cfn;
   teardown();
 }
 
 TEST_CASE("FilterManagementModule - :fxor XORs with existing filter") {
   setup();
-  LogParserInterface* lpi = make_info_filtered_lpi();
-  auto term = make_filter_term(lpi);
+  CachedFilteredFileNavigator* cfn = make_info_filtered_cfn();
+  auto term = make_filter_term(cfn);
 
   send_cmd(term, ":fxor Level EQ TRACE");
-  auto filter = lpi->getFilter();
+  auto filter = cfn->getFilter();
   auto* combined = dynamic_cast<CombinedFilter*>(filter.get());
   REQUIRE(combined != nullptr);
   REQUIRE(combined->op == BitwiseOp::XOR);
 
-  delete lpi;
+  delete cfn;
   teardown();
 }
 
 TEST_CASE("FilterManagementModule - :fnor NORs with existing filter") {
   setup();
-  LogParserInterface* lpi = make_info_filtered_lpi();
-  auto term = make_filter_term(lpi);
+  CachedFilteredFileNavigator* cfn = make_info_filtered_cfn();
+  auto term = make_filter_term(cfn);
 
   send_cmd(term, ":fnor Level EQ TRACE");
-  auto filter = lpi->getFilter();
+  auto filter = cfn->getFilter();
   auto* combined = dynamic_cast<CombinedFilter*>(filter.get());
   REQUIRE(combined != nullptr);
   REQUIRE(combined->op == BitwiseOp::NOR);
 
-  delete lpi;
+  delete cfn;
   teardown();
 }
 
 TEST_CASE("FilterManagementModule - :fout inverts then ANDs") {
   setup();
-  LogParserInterface* lpi = make_info_filtered_lpi();
-  auto term = make_filter_term(lpi);
+  CachedFilteredFileNavigator* cfn = make_info_filtered_cfn();
+  auto term = make_filter_term(cfn);
 
   send_cmd(term, ":fout Level EQ TRACE");
-  auto filter = lpi->getFilter();
+  auto filter = cfn->getFilter();
   LOG(1, "Got filter %p\n", filter.get());
   auto* combined = dynamic_cast<CombinedFilter*>(filter.get());
   REQUIRE(combined != nullptr);
@@ -767,26 +767,26 @@ TEST_CASE("FilterManagementModule - :fout inverts then ANDs") {
   // The right-hand filter should be inverted
   REQUIRE(combined->right_filter->is_inverted());
 
-  delete lpi;
+  delete cfn;
   teardown();
 }
 
 TEST_CASE("FilterManagementModule - :f on empty filter just sets it") {
   setup();
-  LogParserInterface* lpi = make_lpi();
-  auto term = make_filter_term(lpi);
+  CachedFilteredFileNavigator* cfn = make_cfn();
+  auto term = make_filter_term(cfn);
 
-  REQUIRE(lpi->getFilter() == nullptr);
+  REQUIRE(cfn->getFilter() == nullptr);
 
   // :f with no existing filter should just set, not combine
   send_cmd(term, ":f Level EQ INFO");
-  auto filter = lpi->getFilter();
+  auto filter = cfn->getFilter();
   REQUIRE(filter != nullptr);
   // Should NOT be a CombinedFilter — there was nothing to combine with
   auto* combined = dynamic_cast<CombinedFilter*>(filter.get());
   REQUIRE(combined == nullptr);
 
-  delete lpi;
+  delete cfn;
   teardown();
 }
 
@@ -803,8 +803,8 @@ TEST_CASE("FilterManagementModule - :f on empty filter just sets it") {
 
 TEST_CASE("Cursor reposition - fset: cursor on passing line stays on same global line") {
   setup();
-  LogParserInterface* lpi = make_lpi();
-  auto term = make_filter_term(lpi);
+  CachedFilteredFileNavigator* cfn = make_cfn();
+  auto term = make_filter_term(cfn);
 
   // Cursor on global 4 (first INFO line)
   term.term_state.cy = 4;
@@ -814,16 +814,16 @@ TEST_CASE("Cursor reposition - fset: cursor on passing line stays on same global
 
   // Global 4 passes → local 0
   REQUIRE(term.term_state.line_offset + term.term_state.cy == 0);
-  REQUIRE(lpi->localToGlobalLineId(term.term_state.line_offset + term.term_state.cy) == 4);
+  REQUIRE(cfn->localToGlobalLineId(term.term_state.line_offset + term.term_state.cy) == 4);
 
-  delete lpi;
+  delete cfn;
   teardown();
 }
 
 TEST_CASE("Cursor reposition - fset: cursor on passing line with line_offset") {
   setup();
-  LogParserInterface* lpi = make_lpi();
-  auto term = make_filter_term(lpi);
+  CachedFilteredFileNavigator* cfn = make_cfn();
+  auto term = make_filter_term(cfn);
 
   // Cursor on global 12 (second INFO) via cy=2, offset=10
   term.term_state.cy = 2;
@@ -833,16 +833,16 @@ TEST_CASE("Cursor reposition - fset: cursor on passing line with line_offset") {
 
   // Global 12 passes → local 1
   REQUIRE(term.term_state.line_offset + term.term_state.cy == 1);
-  REQUIRE(lpi->localToGlobalLineId(term.term_state.line_offset + term.term_state.cy) == 12);
+  REQUIRE(cfn->localToGlobalLineId(term.term_state.line_offset + term.term_state.cy) == 12);
 
-  delete lpi;
+  delete cfn;
   teardown();
 }
 
 TEST_CASE("Cursor reposition - fset: cursor on non-passing line, nearby prior passing line") {
   setup();
-  LogParserInterface* lpi = make_lpi();
-  auto term = make_filter_term(lpi);
+  CachedFilteredFileNavigator* cfn = make_cfn();
+  auto term = make_filter_term(cfn);
 
   // Cursor on global 5 (TRACE, right after INFO at global 4)
   term.term_state.cy = 5;
@@ -852,16 +852,16 @@ TEST_CASE("Cursor reposition - fset: cursor on non-passing line, nearby prior pa
 
   // Global 5 doesn't pass → prior passing = global 4 → local 0
   REQUIRE(term.term_state.line_offset + term.term_state.cy == 0);
-  REQUIRE(lpi->localToGlobalLineId(term.term_state.line_offset + term.term_state.cy) == 4);
+  REQUIRE(cfn->localToGlobalLineId(term.term_state.line_offset + term.term_state.cy) == 4);
 
-  delete lpi;
+  delete cfn;
   teardown();
 }
 
 TEST_CASE("Cursor reposition - fset: cursor on non-passing line, distant prior passing line") {
   setup();
-  LogParserInterface* lpi = make_lpi();
-  auto term = make_filter_term(lpi);
+  CachedFilteredFileNavigator* cfn = make_cfn();
+  auto term = make_filter_term(cfn);
 
   // Cursor on global 30 (TRACE, just after INFO at global 29)
   // Prior passing line: global 29 → local 8
@@ -872,16 +872,16 @@ TEST_CASE("Cursor reposition - fset: cursor on non-passing line, distant prior p
 
   line_t cursor_local = term.term_state.line_offset + term.term_state.cy;
   REQUIRE(cursor_local == 8);
-  REQUIRE(lpi->localToGlobalLineId(cursor_local) == 29);
+  REQUIRE(cfn->localToGlobalLineId(cursor_local) == 29);
 
-  delete lpi;
+  delete cfn;
   teardown();
 }
 
 TEST_CASE("Cursor reposition - fset: cursor before any passing line goes to first passing") {
   setup();
-  LogParserInterface* lpi = make_lpi();
-  auto term = make_filter_term(lpi);
+  CachedFilteredFileNavigator* cfn = make_cfn();
+  auto term = make_filter_term(cfn);
 
   // Cursor on global 0 (TRACE, before any INFO line)
   term.term_state.cy = 0;
@@ -891,16 +891,16 @@ TEST_CASE("Cursor reposition - fset: cursor before any passing line goes to firs
 
   // No prior passing line → first passing = global 4 → local 0
   REQUIRE(term.term_state.line_offset + term.term_state.cy == 0);
-  REQUIRE(lpi->localToGlobalLineId(term.term_state.line_offset + term.term_state.cy) == 4);
+  REQUIRE(cfn->localToGlobalLineId(term.term_state.line_offset + term.term_state.cy) == 4);
 
-  delete lpi;
+  delete cfn;
   teardown();
 }
 
 TEST_CASE("Cursor reposition - fset: cursor near end of file goes to last prior passing line") {
   setup();
-  LogParserInterface* lpi = make_lpi();
-  auto term = make_filter_term(lpi);
+  CachedFilteredFileNavigator* cfn = make_cfn();
+  auto term = make_filter_term(cfn);
 
   // Cursor on global 60 (TRACE, near end of file)
   // Prior passing line: global 57 → local 13
@@ -911,16 +911,16 @@ TEST_CASE("Cursor reposition - fset: cursor near end of file goes to last prior 
 
   line_t cursor_local = term.term_state.line_offset + term.term_state.cy;
   REQUIRE(cursor_local == 13);
-  REQUIRE(lpi->localToGlobalLineId(cursor_local) == 57);
+  REQUIRE(cfn->localToGlobalLineId(cursor_local) == 57);
 
-  delete lpi;
+  delete cfn;
   teardown();
 }
 
 TEST_CASE("Cursor reposition - fclear: cursor stays on same global line") {
   setup();
-  LogParserInterface* lpi = make_info_filtered_lpi();
-  auto term = make_filter_term(lpi);
+  CachedFilteredFileNavigator* cfn = make_info_filtered_cfn();
+  auto term = make_filter_term(cfn);
 
   // With INFO filter, cursor at local 0 → global 4
   term.term_state.cy = 0;
@@ -930,16 +930,16 @@ TEST_CASE("Cursor reposition - fclear: cursor stays on same global line") {
 
   // After clearing, global 4 → local 4 (all lines visible)
   REQUIRE(term.term_state.line_offset + term.term_state.cy == 4);
-  REQUIRE(lpi->localToGlobalLineId(term.term_state.line_offset + term.term_state.cy) == 4);
+  REQUIRE(cfn->localToGlobalLineId(term.term_state.line_offset + term.term_state.cy) == 4);
 
-  delete lpi;
+  delete cfn;
   teardown();
 }
 
 TEST_CASE("Cursor reposition - fclear: preserves screen position with line_offset") {
   setup();
-  LogParserInterface* lpi = make_info_filtered_lpi();
-  auto term = make_filter_term(lpi);
+  CachedFilteredFileNavigator* cfn = make_info_filtered_cfn();
+  auto term = make_filter_term(cfn);
 
   // With INFO filter, cursor at local 9 → global 36, displayed at cy=9
   term.term_state.cy = 9;
@@ -951,8 +951,8 @@ TEST_CASE("Cursor reposition - fclear: preserves screen position with line_offse
   // new_local(36) > cy(9) → line_offset = 36 - 9 = 27, cy stays 9
   REQUIRE(term.term_state.cy == 9);
   REQUIRE(term.term_state.line_offset == 27);
-  REQUIRE(lpi->localToGlobalLineId(term.term_state.line_offset + term.term_state.cy) == 36);
+  REQUIRE(cfn->localToGlobalLineId(term.term_state.line_offset + term.term_state.cy) == 36);
 
-  delete lpi;
+  delete cfn;
   teardown();
 }

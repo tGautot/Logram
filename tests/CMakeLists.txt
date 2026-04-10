@@ -14,7 +14,7 @@ add_executable(run_tests
   test_line_parser.cpp
   test_line_filter.cpp
   test_filtered_file_reader.cpp
-  test_log_parser_interface.cpp
+  test_cached_filtered_file_navigator.cpp
   test_cyclic_deque.cpp
   test_filters.cpp
   test_filter_roundtrip.cpp

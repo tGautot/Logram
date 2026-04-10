@@ -11,13 +11,13 @@
 
 #include "line_format.hpp"
 #include "terminal_state.hpp"
-#include "log_parser_interface.hpp"
+#include "cached_filtered_file_navigator.hpp"
 
 
 typedef uint64_t user_action_t;
 #define ACTION_NONE 0
-using ActionCallbackPtr =  std::function<int(user_action_t, term_state_t&, LogParserInterface*)>;
-using CommandCallbackPtr =  std::function<int(std::string&, term_state_t&, LogParserInterface*)>;
+using ActionCallbackPtr =  std::function<int(user_action_t, term_state_t&, CachedFilteredFileNavigator*)>;
+using CommandCallbackPtr =  std::function<int(std::string&, term_state_t&, CachedFilteredFileNavigator*)>;
 
 std::string ansi(const std::string& color, bool bold = false);
 
@@ -27,12 +27,12 @@ public:
   term_state_t term_state;
 
   std::string frame_str;
-  LogParserInterface* lpi;
+  CachedFilteredFileNavigator* cfn;
   std::string m_profile;
 
   LogParserTerminal(const std::string& filename);
   LogParserTerminal(const std::string& filename, std::unique_ptr<LineFormat> line_format);
-  LogParserTerminal(LogParserInterface* lpi_ptr); // For unit testing (no terminal setup)
+  LogParserTerminal(CachedFilteredFileNavigator* cfn_ptr); // For unit testing (no terminal setup)
 
   std::vector<std::pair<std::string, user_action_t>> user_input_mappings;
   std::vector<ActionCallbackPtr> action_cbs;

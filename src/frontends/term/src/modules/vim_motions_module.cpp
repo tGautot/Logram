@@ -18,16 +18,16 @@ void VimMotionsModule::registerUserInputMapping(LogParserTerminal& lpt){
   lpt.registerUserInputMapping("l", ACTION_MOVE_RIGHT);
 }
 void VimMotionsModule::registerUserActionCallback(LogParserTerminal& lpt) {
-  lpt.registerActionCallback([](user_action_t act, term_state_t& state, LogParserInterface* lpi)-> int{
+  lpt.registerActionCallback([](user_action_t act, term_state_t& state, CachedFilteredFileNavigator* cfn)-> int{
     if(act == ACTION_GO_TO_FILE_BEGINNING){
       state.cy = 0;
       state.line_offset = 0;
-      lpi->jumpToLocalLine(0);
+      cfn->jumpToLocalLine(0);
     }
     if(act == ACTION_GO_TO_FILE_END){
-      lpi->jumpToLocalLine(LINE_T_MAX);
+      cfn->jumpToLocalLine(LINE_T_MAX);
       // We ideally want to put the cursor as low as possible (cy = num_rows - status_lines)
-      line_t line_num = lpi->block.first_line_local_id + lpi->block.lines.size()-1;
+      line_t line_num = cfn->block.first_line_local_id + cfn->block.lines.size()-1;
       if(line_num > (size_t) state.nrows - state.num_status_line - 1) state.cy = state.nrows - state.num_status_line -1;
       else state.cy = line_num;
       state.line_offset = line_num - state.cy;
@@ -36,16 +36,16 @@ void VimMotionsModule::registerUserActionCallback(LogParserTerminal& lpt) {
   });
 }
 void VimMotionsModule::registerCommandCallback(LogParserTerminal& lpt) {
-  lpt.registerCommandCallback([](std::string& cmd, term_state_t& state, LogParserInterface* lpi) -> int{
+  lpt.registerCommandCallback([](std::string& cmd, term_state_t& state, CachedFilteredFileNavigator* cfn) -> int{
     if(cmd.size() == 1 || !is_digit(cmd[1])) {
       return 0;
     }
 
     size_t line_num = atoll(cmd.data() + 1);
-    lpi->jumpToLocalLine(line_num);
+    cfn->jumpToLocalLine(line_num);
 
-    if(lpi->block.contains_last_line && line_num >= lpi->block.first_line_local_id + lpi->block.size()){
-      line_num = lpi->block.first_line_local_id + lpi->block.size()-1;
+    if(cfn->block.contains_last_line && line_num >= cfn->block.first_line_local_id + cfn->block.size()){
+      line_num = cfn->block.first_line_local_id + cfn->block.size()-1;
     }
     
     // Must cy + line_offset = line_num

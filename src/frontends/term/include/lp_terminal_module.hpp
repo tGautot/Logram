@@ -3,7 +3,7 @@
 
 #include "terminal_state.hpp"
 #include "log_parser_terminal.hpp"
-#include "log_parser_interface.hpp"
+#include "cached_filtered_file_navigator.hpp"
 
 
 #define ACTION_MOVE_UP    10

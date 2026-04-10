@@ -1,4 +1,4 @@
-#include "log_parser_interface.hpp"
+#include "cached_filtered_file_navigator.hpp"
 #include "common.hpp"
 #include "line_filter.hpp"
 #include "line_format.hpp"
@@ -16,9 +16,9 @@
 
 #define STRING_VIEW_PRINT(sv) static_cast<int>(sv.length()), sv.data()
 
-LogParserInterface::LogParserInterface(std::string fname, std::unique_ptr<LineFormat> fmt, std::shared_ptr<LineFilter> fltr,  int bsize)
+CachedFilteredFileNavigator::CachedFilteredFileNavigator(std::string fname, std::unique_ptr<LineFormat> fmt, std::shared_ptr<LineFilter> fltr,  int bsize)
   : block_size(bsize), block(bsize), filename(fname){
-  LOG_FUNCENTRY(5, "LogParserInterface::LogParserInterface");
+  LOG_FUNCENTRY(5, "CachedFilteredFileNavigator::CachedFilteredFileNavigator");
   ffr = new FilteredFileReader(fname, std::move(fmt), fltr);
   known_last_line = LINE_T_MAX;
   known_first_line = 0;
@@ -44,12 +44,12 @@ LogParserInterface::LogParserInterface(std::string fname, std::unique_ptr<LineFo
   
 }
 
-LogParserInterface::~LogParserInterface(){
+CachedFilteredFileNavigator::~CachedFilteredFileNavigator(){
   delete ffr;
 }
 
-void LogParserInterface::reset_and_refill_block(line_t around_global_line){
-  LOG_FUNCENTRY(5, "LogParserInterface::reset_and_refill_block");
+void CachedFilteredFileNavigator::reset_and_refill_block(line_t around_global_line){
+  LOG_FUNCENTRY(5, "CachedFilteredFileNavigator::reset_and_refill_block");
   
   local_to_global_id.clear();
   block.lines.clear();
@@ -82,33 +82,33 @@ void LogParserInterface::reset_and_refill_block(line_t around_global_line){
 
 }
 
-void LogParserInterface::setLineFormat(std::unique_ptr<LineFormat> lf, line_t global_anchor_line){
+void CachedFilteredFileNavigator::setLineFormat(std::unique_ptr<LineFormat> lf, line_t global_anchor_line){
   ffr->setFormat(std::move(lf));
   reset_and_refill_block(global_anchor_line);
 }
 
-LineFormat* LogParserInterface::getLineFormat(){
+LineFormat* CachedFilteredFileNavigator::getLineFormat(){
   // We'll see about this raw pointer cast...
   return ffr->m_config->parser->format.get();
 }
 
 
-void LogParserInterface::setFilter(std::shared_ptr<LineFilter> lf, line_t global_anchor_line){
+void CachedFilteredFileNavigator::setFilter(std::shared_ptr<LineFilter> lf, line_t global_anchor_line){
   ffr->setFilter(lf);
   reset_and_refill_block(global_anchor_line);
 }
 
-std::shared_ptr<LineFilter> LogParserInterface::getFilter(){
+std::shared_ptr<LineFilter> CachedFilteredFileNavigator::getFilter(){
   return ffr->m_config->filter;
 }
 
-void LogParserInterface::setBadFormatAccepted(bool accept, line_t global_anchor_line){
+void CachedFilteredFileNavigator::setBadFormatAccepted(bool accept, line_t global_anchor_line){
   ffr->acceptBadFormat(accept);
   reset_and_refill_block(global_anchor_line);
 
 }
 
-void LogParserInterface::print_lines_in_block(){
+void CachedFilteredFileNavigator::print_lines_in_block(){
   printf("current block: flli: %lu - llli: %lu\n", block.first_line_local_id, block.first_line_local_id + block_size);
   for(size_t i = 0; i < block_size; i++){
     printf("\t%s\n", block.lines[i].raw_line.data());
@@ -116,8 +116,8 @@ void LogParserInterface::print_lines_in_block(){
 }
 
 
-line_info_t LogParserInterface::getLine(line_t local_line_id){
-  LOG_FUNCENTRY(9, "LogParserInterface::getLine");
+line_info_t CachedFilteredFileNavigator::getLine(line_t local_line_id){
+  LOG_FUNCENTRY(9, "CachedFilteredFileNavigator::getLine");
   LOG_FCT(9, "Looking for line %llu, block rqnge is [%llu, %llu[\n", local_line_id, block.first_line_local_id, block.first_line_local_id + block.size());
   if(local_line_id >= block.first_line_local_id && (local_line_id < block.first_line_local_id + block.size() || block.contains_last_line) ){
     if( (block.contains_last_line) && local_line_id >= block.first_line_local_id + block.size() ){
@@ -213,8 +213,8 @@ line_info_t LogParserInterface::getLine(line_t local_line_id){
 }
 
 
-void LogParserInterface::jumpToLocalLine(line_t local_line_id){
-  LOG_FUNCENTRY(5, "LogParserInterface::jumpToLocalLine");
+void CachedFilteredFileNavigator::jumpToLocalLine(line_t local_line_id){
+  LOG_FUNCENTRY(5, "CachedFilteredFileNavigator::jumpToLocalLine");
   LOG_FCT(5,"Jumping to local line %ld\n", local_line_id);
   line_t block_last_line = block.first_line_local_id + block_size;
   if(local_line_id >= block.first_line_local_id && (local_line_id <= block_last_line || block.contains_last_line)){
@@ -367,7 +367,7 @@ done:
 
 }
 
-std::pair<line_t, size_t> LogParserInterface::findNextOccurence(std::string match, line_t from_local, bool forward){
+std::pair<line_t, size_t> CachedFilteredFileNavigator::findNextOccurence(std::string match, line_t from_local, bool forward){
   LOG(3, "Starting at line num %lu\n", from_local);
   if(from_local >= ffr->m_filtered_file_data->valid_line_index.size()){
     return {LINE_T_MAX, SIZE_MAX};  

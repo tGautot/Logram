@@ -30,7 +30,7 @@ void MODULE_NAME::registerUserInputMapping(LogParserTerminal&){
   lpt.registerUserInputMapping("AAA", MY_ACTION);
 }
 void MODULE_NAME::registerUserActionCallback(LogParserTerminal&) {
-  lpt.registerActionCallback([](user_action_t act, term_state_t& term_state, LogParserInterface* lpi)-> int{
+  lpt.registerActionCallback([](user_action_t act, term_state_t& term_state, CachedFilteredFileNavigator* cfn)-> int{
     if(act == MY_ACTION){
       // Do stuff
       return 1;
@@ -39,7 +39,7 @@ void MODULE_NAME::registerUserActionCallback(LogParserTerminal&) {
   });
 }
 void MODULE_NAME::registerCommandCallback(LogParserTerminal& lpt) {
-  lpt.registerCommandCallback([](std::string& cmd, term_state_t& state, LogParserInterface* lpi) -> int{
+  lpt.registerCommandCallback([](std::string& cmd, term_state_t& state, CachedFilteredFileNavigator* cfn) -> int{
     // TODO, check for the command you want to handle here (e.g cmd.find(":my_cmd") == 0)
     return 0;
   });

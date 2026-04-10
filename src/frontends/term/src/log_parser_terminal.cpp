@@ -141,8 +141,8 @@ static void setupTerm(term_state_t stt){
 
 LogParserTerminal::LogParserTerminal(const std::string& filename) : LogParserTerminal(filename, nullptr){}
 
-LogParserTerminal::LogParserTerminal(LogParserInterface* lpi_ptr)
-  : lpi(lpi_ptr), m_profile(CFG_COMMON_PROFILE) {
+LogParserTerminal::LogParserTerminal(CachedFilteredFileNavigator* cfn_ptr)
+  : cfn(cfn_ptr), m_profile(CFG_COMMON_PROFILE) {
   term_state.cx = 4;
   term_state.cy = 0;
   term_state.input_mode = InputMode::ACTION;
@@ -158,7 +158,7 @@ LogParserTerminal::LogParserTerminal(const std::string& filename, std::unique_pt
   if( (filter_str = cfg.get(m_profile, CFG_FILTER, "")) != ""){
     filter = parse_filter_decl(filter_str, line_format.get());
   }
-  lpi = new LogParserInterface(filename, std::move(line_format), filter);
+  cfn = new CachedFilteredFileNavigator(filename, std::move(line_format), filter);
   setupTerm(term_state);
   atexit(rollbackTerm);
   term_state.cx = 4;
@@ -180,7 +180,7 @@ void LogParserTerminal::registerCommandCallback(CommandCallbackPtr cmd_cb){
 }
 
 bool LogParserTerminal::isCursorOnLastLine(){
-  return (term_state.cy + term_state.line_offset == lpi->known_last_line);
+  return (term_state.cy + term_state.line_offset == cfn->known_last_line);
 }
 
 void LogParserTerminal::updateDisplayState(){
@@ -189,7 +189,7 @@ void LogParserTerminal::updateDisplayState(){
   std::string line_numbering = cfg.get(m_profile, CFG_LINE_NUM_MODE) ;
   std::vector<std::string> line_info_str; 
   for(int i = 0; i < term_state.nrows-term_state.num_status_line; i++){
-    line_info_t lineinfo = lpi->getLine(i+term_state.line_offset);
+    line_info_t lineinfo = cfn->getLine(i+term_state.line_offset);
     term_state.displayed_pls.push_back(lineinfo.line);
     if(lineinfo.line != nullptr){
       term_state.info_col_size = 2/*size of "~ "*/  + std::to_string(lineinfo.line->line_num).size();
@@ -300,7 +300,7 @@ void LogParserTerminal::drawRows(){
     // Status Line
       snprintf(buf, 80, "Status: cy%d:cx%d:lo%lu:vlo%lu (%d:%d) frame: %lu", term_state.cy, term_state.cx, term_state.line_offset, term_state.vert_line_offset, term_state.nrows, term_state.ncols, term_state.frame_num);
       char buf2[81];
-      snprintf(buf2, 80, "BLK flli=%lu,frm=%lu,to=%lu,cll=%s  ", lpi->block.first_line_local_id, lpi->block.lines.front().line_num, lpi->block.lines.back().line_num, lpi->block.contains_last_line ? "true" : "false");
+      snprintf(buf2, 80, "BLK flli=%lu,frm=%lu,to=%lu,cll=%s  ", cfn->block.first_line_local_id, cfn->block.lines.front().line_num, cfn->block.lines.back().line_num, cfn->block.contains_last_line ? "true" : "false");
       frame_str += buf;
       if(strlen(buf) + strlen(buf2) < term_state.ncols){
         frame_str += std::string(term_state.ncols-strlen(buf)-strlen(buf2), ' ');
@@ -376,7 +376,7 @@ void LogParserTerminal::submitRawInput(){
   int cmd_used = 0;
   try{
     for(auto cmd_cb : command_cbs){
-      cmd_used |= cmd_cb(term_state.raw_input, term_state, lpi);
+      cmd_used |= cmd_cb(term_state.raw_input, term_state, cfn);
     }
     if(cmd_used == 0){
       term_state.latest_error = "The command '" + term_state.raw_input + "' was not recognized";
@@ -516,7 +516,7 @@ user_action_t LogParserTerminal::getUserAction(){
 void LogParserTerminal::handleUserAction(user_action_t action){
   try {
     for(ActionCallbackPtr cb : action_cbs){
-      cb(action, term_state, lpi);
+      cb(action, term_state, cfn);
     }
   } catch (std::exception& e){
     term_state.latest_error = e.what();

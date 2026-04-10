@@ -5,8 +5,8 @@
 
 TEST_CASE("WasdModule - input mappings") {
   setup();
-  auto* lpi = make_lpi();
-  LogParserTerminal term(lpi);
+  auto* cfn = make_cfn();
+  LogParserTerminal term(cfn);
 
   WasdModule mod;
   mod.registerUserInputMapping(term);

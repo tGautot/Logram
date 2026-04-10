@@ -4,13 +4,13 @@ target_compile_options(file_parsing PRIVATE "${CMAKE_CXX_FLAGS_WARNINGS}")
 
 target_sources(file_parsing
     PRIVATE
-        log_parser_interface.cpp
+        cached_filtered_file_navigator.cpp
         filtered_file_reader.cpp
         processed_line.cpp
         line_filter.cpp
         filter_parsing.cpp
     PUBLIC
-        log_parser_interface.hpp
+        cached_filtered_file_navigator.hpp
         filtered_file_reader.hpp
         processed_line.hpp
         line_filter.hpp

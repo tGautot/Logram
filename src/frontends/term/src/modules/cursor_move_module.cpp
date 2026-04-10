@@ -1,17 +1,17 @@
 
-#include "log_parser_interface.hpp"
+#include "cached_filtered_file_navigator.hpp"
 #include "terminal_modules.hpp"
 
-bool isCursorOnLastLine(term_state_t &term_state, LogParserInterface *lpi){
-  return (lpi->localToGlobalLineId(term_state.cy + term_state.line_offset) == lpi->known_last_line);
+bool isCursorOnLastLine(term_state_t &term_state, CachedFilteredFileNavigator *cfn){
+  return (cfn->localToGlobalLineId(term_state.cy + term_state.line_offset) == cfn->known_last_line);
 }
 
 void CursorMoveModule::registerUserInputMapping(LogParserTerminal& term){
   // Dont register any input, this module only handles move actions
 };
 void CursorMoveModule::registerUserActionCallback(LogParserTerminal& term){
-  term.registerActionCallback([](user_action_t act, term_state_t& term_state, LogParserInterface* lpi)-> int{
-    bool last_line = isCursorOnLastLine(term_state, lpi);
+  term.registerActionCallback([](user_action_t act, term_state_t& term_state, CachedFilteredFileNavigator* cfn)-> int{
+    bool last_line = isCursorOnLastLine(term_state, cfn);
     if(act == ACTION_MOVE_DOWN){
       if(term_state.cy < term_state.nrows-1 - term_state.num_status_line - 4*(1-last_line)){
         if(term_state.displayed_pls[term_state.cy+1] == nullptr) return 0;

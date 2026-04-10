@@ -5,7 +5,7 @@
 #include "line_filter.hpp"
 #include "processed_line.hpp"
 #include "filtered_file_reader.hpp"
-#include "log_parser_interface.hpp"
+#include "cached_filtered_file_navigator.hpp"
 
 #include <cstring>
 #include <fstream>
@@ -75,7 +75,7 @@ static const std::string_view info_lines[10] = {
 };
 
 // Same lines interleaved with binary-format (non-parseable) lines,
-// as returned by LogParserInterface (which includes surrounding context)
+// as returned by CachedFilteredFileNavigator (which includes surrounding context)
 static const std::string_view info_and_bf_lines[14] = {
   "0322 085338 INFO   :......rsvp_flow_stateMachine: state RESVED, event T1OUT",
   "0322 085352 INFO   :.......rsvp_parse_objects: obj RSVP_HOP hop=9.67.116.99, lih=0",
@@ -94,18 +94,18 @@ static const std::string_view info_and_bf_lines[14] = {
 };
 
 // Maps the nth INFO line (local id) to its global line number in sample.log
-inline LogParserInterface* make_lpi(int bsize = 1000) {
+inline CachedFilteredFileNavigator* make_cfn(int bsize = 1000) {
   std::string filename = SAMPLE_LOG;
-  return new LogParserInterface(filename, getDefaultLineFormat(), nullptr, bsize);
+  return new CachedFilteredFileNavigator(filename, getDefaultLineFormat(), nullptr, bsize);
 }
 
-inline LogParserInterface* make_info_filtered_lpi(int bsize = 1000) {
+inline CachedFilteredFileNavigator* make_info_filtered_cfn(int bsize = 1000) {
   std::string filename = SAMPLE_LOG;
   auto lf = getDefaultLineFormat();
   std::string val = "INFO";
   auto filter = std::make_shared<FieldFilter>(
       lf.get(), "Level", FilterComparison::EQUAL, &val);
-  return new LogParserInterface(filename, std::move(lf), filter, bsize);
+  return new CachedFilteredFileNavigator(filename, std::move(lf), filter, bsize);
 }
 
 inline int count_to_info_line(int id) {
