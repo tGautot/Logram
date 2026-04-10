@@ -1,5 +1,8 @@
 # Logram
 
+![Logram logo](logram_logo_header.svg)
+
+
 > A fast, read-only, terminal-based log viewer that actually understands your logs.
 
 Logram  lets you **define the structure** of your log lines, then navigate, search, and filter by what the fields *mean* — not just what they look like.
