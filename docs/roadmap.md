@@ -1,6 +1,6 @@
 # Roadmap
 
-Logram is currently in Beta. Below are laid out and discussed the minimum features I would like to have before anouncing an official 1.0 release. Any contributions to the project (towards those features or any other improvements) are naturally welcome, and if you wish to discuss any part of the projects, please reach out! 
+Logram is currently in Beta. Below are laid out and discussed the minimum features I would like to have before anouncing an official 1.0 release. Besides all those, there are of course many improvements to the current code that need to be brought, this is just an overview of _additions_ I would like make. Any contributions to the project (towards those features or any other improvements) are naturally welcome, and if you wish to discuss any part of the project, please reach out! 
 
 ## Saving/Reloading the state
 
@@ -22,7 +22,7 @@ Since the only external dependency of Logram is Catch2, the test framework, comp
 
 ## Runtime enabling/disabling of modules
 
-Everything is in the title of this one.
+Everything is in the title of this one. I think simply mandating all modules libs to have a pre-specified entry point that can be found by using dlopen/dlsym should be good enough.
 
 ## Improvment to tests
 
