@@ -14,7 +14,8 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 set(GCC_INSTALL_PREFIX /usr/bin)
 
-add_compile_options(-g)
+# If you wish to debug Logram
+# add_compile_options(-g)
 
 # ================= BUILDING ======================================
 
