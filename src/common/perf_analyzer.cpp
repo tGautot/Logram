@@ -5,16 +5,9 @@
 
 std::map<std::string, std::vector<int64_t> > DataAnalyzer::profile_samples = {};
 
-void DataAnalyzer::add_sample(const std::string& profile, int64_t sample){
+void DataAnalyzer::add_sample(const _profile_entry& entry, int64_t sample){
   // Clearly not thread safe, update when Logram goes multithreaded
-  auto itt = profile_samples.find(profile);
-  if(itt == profile_samples.end()){
-    profile_samples[profile] = {sample};
-    // Allocate a lot of memory on creation, that way we lose time (hopefully) only once
-    profile_samples[profile].reserve(100000);
-  } else {
-    itt->second.push_back(sample);
-  }
+  entry->second.push_back(sample);
 }
 
 void DataAnalyzer::print_stats(){
@@ -38,7 +31,20 @@ void DataAnalyzer::print_stats(){
 }
 
 
-SectionPerfAnalyzer::SectionPerfAnalyzer(const char*  section_name) : name(section_name){
+_profile_entry DataAnalyzer::get_profile_entry(const std::string& profile){
+  // Since we only ever do  insert, no iterator is ever invalidated
+  auto itt = profile_samples.find(profile);
+  if(itt == profile_samples.end()){
+    profile_samples[profile] = {};
+    // Allocate a lot of memory on creation
+    profile_samples[profile].reserve(100000);
+    itt = profile_samples.find(profile);
+  }
+  return itt;
+}
+
+
+SectionPerfAnalyzer::SectionPerfAnalyzer(const _profile_entry& entry) : m_entry(entry){
 #ifdef PERF_ANALYZE_ON
   uint32_t lo, hi;
   // Watching cpp talks has its perks
@@ -52,6 +58,6 @@ SectionPerfAnalyzer::~SectionPerfAnalyzer() {
   uint32_t lo, hi;
   __asm__ __volatile__ ("rdtsc" : "=a"(lo), "=d"(hi));
   int64_t end = ((uint64_t)hi << 32) | lo;
-  DataAnalyzer::add_sample(name, end-start);
+  DataAnalyzer::add_sample(m_entry, end-start);
 #endif
 }
