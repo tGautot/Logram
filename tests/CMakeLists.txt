@@ -37,3 +37,12 @@ target_link_libraries(run_tests
     line_parsing
     file_parsing
     logramtui)
+
+add_executable(run_bench
+  bench_main.cpp)
+
+  target_link_libraries(run_bench
+  PRIVATE
+    utils_common
+    line_parsing
+    file_parsing)

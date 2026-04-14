@@ -240,17 +240,18 @@ void CachedFilteredFileNavigator::jumpToLocalLine(line_t local_line_id){
     around_global_line = local_to_global_id[local_line_id];
     around_local_line = local_line_id;
     
-  } else { // local > last line of block
-    LOG_FCT(5, "Local line is later what current block holds\n");
+  } else { // local > first line of block
     if(local_line_id - block_last_line < block_size){
       getLine(local_line_id);
       LOG_EXIT();
       return;
     }
+    LOG_FCT(5, "Local line is later what current block holds\n");
 
     // Line is later in the file
     // Maybe we already saw it
-    // If not, it means we never saw it, and we need to go there sequentially
+    
+    // Never indexed local id, it means we never saw it, and we need to go there sequentially
     if(local_line_id >= local_to_global_id.size()){
       around_global_line = LINE_T_MAX;
       around_local_line = local_to_global_id.size()-1;

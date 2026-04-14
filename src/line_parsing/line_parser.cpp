@@ -1,6 +1,7 @@
 #include "line_parser.hpp"
 #include <memory>
 #include "logging.hpp"
+#include "perf_analyzer.hpp"
 
 std::shared_ptr<Parser> Parser::fromLineFormat(std::unique_ptr<LineFormat> lfmt){
   std::shared_ptr<Parser> p = std::make_shared<Parser>();
@@ -56,6 +57,7 @@ void Parser::addParsingStep(parse_instruction_t* inst){
 }
 
 bool Parser::parseLine(std::string_view line, ParsedLine* ret){
+  SECTION_PERF("Parser::parseLine");
   if(format == nullptr) return false;
   LOG_FUNCENTRY(9, "Parser::parseLine");
   std::vector<parse_instruction_t*>::iterator iter;
@@ -91,7 +93,7 @@ bool Parser::parseLine(std::string_view line, ParsedLine* ret){
       return false;
     }
   }
-  LOG(3, "Arrived at %p, should be %p\n",  s, line.data() + line.size());
+  LOG(9, "Arrived at %p, should be %p\n",  s, line.data() + line.size());
   LOG_EXIT();
   return s == line.data() + line.size();
 
