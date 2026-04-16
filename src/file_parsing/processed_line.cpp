@@ -13,7 +13,10 @@ void  ProcessedLine::set_data(line_t line, const char* s, size_t n_char, Parser*
     pl = nullptr;
     well_formated = false;
   } else {
-    pl = std::make_unique<ParsedLine>(p->format.get());
+    // Assume that, if parsed line is already allocated, it is for the current format and thus right size.
+    if(pl == nullptr){
+      pl = std::make_unique<ParsedLine>(p->format.get());
+    }
     well_formated = p->parseLine(raw_line, pl.get());
   }
   stt_pos = strm_pos;
