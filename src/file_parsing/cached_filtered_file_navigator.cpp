@@ -317,7 +317,7 @@ void CachedFilteredFileNavigator::jumpToLocalLine(line_t local_line_id){
   }
 
   LOG_FCT(5, "Jumping to a known place of the file, arougn global line %lu\n", around_global_line);
-  size_t segment_lines_left = block_size/2, nread;
+  size_t segment_lines_left = block_size/2, nread = 0;
   ProcessedLine pl;
   size_t line_storage_id = 0;
   bool no_more_above = false, no_more_below = false, finished = false;

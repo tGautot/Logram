@@ -14,6 +14,7 @@
 #include <map>
 #include <memory>
 #include <string>
+#include <sys/types.h>
 
 extern "C"{
 #include "logging.h"
@@ -103,8 +104,10 @@ static void rollbackTerm(){
 }
 
 static void die(const char* s){
-  CLEAR_SCREEN();
-  CURSOR_TL();
+  ssize_t trash;
+  (void)trash;
+  trash = CLEAR_SCREEN();
+  trash = CURSOR_TL();
   rollbackTerm();
   perror(s);
   exit(1);
@@ -353,9 +356,11 @@ void LogramTerminal::computeFrameStr(){
 
 
 void LogramTerminal::loop(){
+  ssize_t trash;
+  (void)trash;
   while (1) {
     computeFrameStr();
-    write(STDOUT_FILENO, frame_str.data(), frame_str.size());
+    trash = write(STDOUT_FILENO, frame_str.data(), frame_str.size());
     handleUserAction(getUserAction());
     term_state.frame_num++;
   }

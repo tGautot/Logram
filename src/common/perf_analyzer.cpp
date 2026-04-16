@@ -15,6 +15,7 @@ void DataAnalyzer::print_stats(){
 
   for(auto itt : profile_samples) {
     std::cout << "\n\n[" + itt.first + "]: " << itt.second.size() << " samples\n";
+    if(itt.second.size() == 0) continue;
     int64_t min = INT64_MAX, max = INT64_MIN, avg = 0;
     for(auto sample : itt.second){
       min = std::min(min, sample);

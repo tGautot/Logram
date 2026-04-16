@@ -52,7 +52,7 @@ FilteredFileReader::FilteredFileReader(std::string& fname)
         m_file_data.data = static_cast<const char*>(ptr);
         LOG(1, "mmaped filed at address %p\n", m_file_data.data);
 
-        //madvise(const_cast<char*>(m_file_data.data), m_file_data.size, MADV_RANDOM);
+        madvise(const_cast<char*>(m_file_data.data), m_file_data.size, MADV_RANDOM);
     } else { 
       // Create file is empty, some code doesn't handle it, instead of reworking everything
       // just create a "fake file" with one empty line
