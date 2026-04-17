@@ -28,16 +28,16 @@ int main(int argc, char** argv){
   {
     FilteredFileReader* ffr;
     std::cout << "Running bench test on file located at " << file_path << std::endl;
-    SECTION_PERF("GLOBAL_SECTION_PERF");
+    SECTION_TIME("GLOBAL_SECTION_PERF");
     {
-      SECTION_PERF("GLOBAL_SETUP");
+      SECTION_TIME("GLOBAL_SETUP");
       line_format = LineFormat::fromFormatString(line_format_str);
       //line_filter = parse_filter_decl(active_filter_str, line_format.get());
       ffr = new FilteredFileReader(file_path, std::move(line_format), nullptr);
     }
     
     {
-      SECTION_PERF("GLOBAL_RUNTIME");
+      SECTION_TIME("GLOBAL_RUNTIME");
       ProcessedLine pl; 
       while(ffr->getNextValidLine(pl) != 0){ 
         lines_processed++; } 

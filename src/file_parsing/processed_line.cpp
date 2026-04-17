@@ -1,6 +1,7 @@
 #include "processed_line.hpp"
 #include <cstring>
 
+#include "perf_analyzer.hpp"
 
 ProcessedLine::ProcessedLine(line_t line, const char* s, size_t n_char, Parser* p, file_pos_t strm_pos) {
   set_data(line, s, n_char, p, strm_pos);
@@ -15,6 +16,7 @@ void  ProcessedLine::set_data(line_t line, const char* s, size_t n_char, Parser*
   } else {
     // Assume that, if parsed line is already allocated, it is for the current format and thus right size.
     if(pl == nullptr){
+      SECTION_USAGE_COUNT("PARSED_LINE_ALLOCATIONS");
       pl = std::make_unique<ParsedLine>(p->format.get());
     }
     well_formated = p->parseLine(raw_line, pl.get());

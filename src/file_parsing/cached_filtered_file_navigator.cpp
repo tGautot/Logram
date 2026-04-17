@@ -32,7 +32,6 @@ CachedFilteredFileNavigator::CachedFilteredFileNavigator(std::string fname, std:
     LOG_FCT(5, "Read %d bytes, line is %.*s\n", pl.raw_line.length(), STRING_VIEW_PRINT(block.lines.back().raw_line));
     local_to_global_id.push_back(pl.line_num);
     line_local_id++;
-    if(line_local_id == block_size) break; 
   }
   known_first_line = block.lines[0].line_num;
   block.first_line_local_id = 0;
