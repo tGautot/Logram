@@ -21,8 +21,8 @@ void FilterManagementModule::registerCommandCallback(LogramTerminal& lpt) {
       // (e.g. cursor is on last line without filter -> add new filter -> cursor will be on nothing)
       // So we must apply the filter, parse the file until the global line on which the filter lives
       // Then check which new local line that global line maps to and update the terminal state to now have the cursor there
-      LOG(1, "Setting new filter to %p\n", filter.get());
       line_t global_focus_line = cfn->localToGlobalLineId(state.line_offset + state.cy);
+      LOG(1, "Setting new filter to %p, block reload centered around %lu\n", filter.get(), global_focus_line);
       cfn->setFilter(filter, global_focus_line);
       line_t new_local_id = cfn->globalToLocalLineId(global_focus_line);
       if(new_local_id <= (line_t) state.cy){

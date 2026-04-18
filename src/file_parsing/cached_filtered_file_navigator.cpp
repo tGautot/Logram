@@ -32,7 +32,6 @@ CachedFilteredFileNavigator::CachedFilteredFileNavigator(std::string fname, std:
     LOG_FCT(5, "Read %d bytes, line is %.*s\n", pl.raw_line.length(), STRING_VIEW_PRINT(block.lines.back().raw_line));
     local_to_global_id.push_back(pl.line_num);
     line_local_id++;
-    if(line_local_id == block_size) break; 
   }
   known_first_line = block.lines[0].line_num;
   block.first_line_local_id = 0;
@@ -240,17 +239,18 @@ void CachedFilteredFileNavigator::jumpToLocalLine(line_t local_line_id){
     around_global_line = local_to_global_id[local_line_id];
     around_local_line = local_line_id;
     
-  } else { // local > last line of block
-    LOG_FCT(5, "Local line is later what current block holds\n");
+  } else { // local > first line of block
     if(local_line_id - block_last_line < block_size){
       getLine(local_line_id);
       LOG_EXIT();
       return;
     }
+    LOG_FCT(5, "Local line is later what current block holds\n");
 
     // Line is later in the file
     // Maybe we already saw it
-    // If not, it means we never saw it, and we need to go there sequentially
+    
+    // Never indexed local id, it means we never saw it, and we need to go there sequentially
     if(local_line_id >= local_to_global_id.size()){
       around_global_line = LINE_T_MAX;
       around_local_line = local_to_global_id.size()-1;
@@ -316,7 +316,7 @@ void CachedFilteredFileNavigator::jumpToLocalLine(line_t local_line_id){
   }
 
   LOG_FCT(5, "Jumping to a known place of the file, arougn global line %lu\n", around_global_line);
-  size_t segment_lines_left = block_size/2, nread;
+  size_t segment_lines_left = block_size/2, nread = 0;
   ProcessedLine pl;
   size_t line_storage_id = 0;
   bool no_more_above = false, no_more_below = false, finished = false;

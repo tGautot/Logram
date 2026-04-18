@@ -14,7 +14,7 @@ target_sources(line_parsing
         line_format.hpp
 )
 
-target_link_libraries(line_parsing logging)
+target_link_libraries(line_parsing logging utils_common)
 
 target_include_directories(line_parsing
     PUBLIC 

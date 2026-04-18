@@ -22,6 +22,8 @@ extern "C"{
 
 #include "logging.hpp"
 
+#include "perf_analyzer.hpp"
+
 char readCharAtPos(unsigned long long cp){return *(char*)cp;}
 
 static FileData g_opened_file = {0, {}, "", nullptr};
@@ -50,7 +52,6 @@ FilteredFileReader::FilteredFileReader(std::string& fname)
         m_file_data.data = static_cast<const char*>(ptr);
         LOG(1, "mmaped filed at address %p\n", m_file_data.data);
 
-        // Hint: we'll access this sequentially AND randomly
         madvise(const_cast<char*>(m_file_data.data), m_file_data.size, MADV_RANDOM);
     } else { 
       // Create file is empty, some code doesn't handle it, instead of reworking everything
@@ -88,7 +89,6 @@ FilteredFileReader::FilteredFileReader(std::string& fname, std::unique_ptr<LineF
 }
 
 FilteredFileReader::~FilteredFileReader(){
-  // TODO remove this when we want multi-filereader support
   munmap((void*)m_file_data.data, m_file_data.size);
   g_opened_file = {0, {}, "", nullptr};
 }
@@ -137,6 +137,7 @@ void FilteredFileReader::jumpToLocalLine(line_t line_num){
 size_t FilteredFileReader::getNextRawLine(const char** s){
   LOG_FUNCENTRY(9, "FilteredFileReader::getNextRawLine");
   LOG_FCT(9, "m_curr_line=%lu,already indexed %lu lines\n", m_curr_line, m_file_data.line_index.size()); 
+  SECTION_PERF("FilteredFileReader::getNextRawLine");
   size_t sz = 0;
   *s = m_file_data.data + m_cursor;
   if(m_curr_line+1 == m_file_data.line_index.size()){ // On last indexed line need to find next LF
@@ -169,7 +170,8 @@ size_t FilteredFileReader::getNextRawLine(const char** s){
 size_t FilteredFileReader::getPrevRawLine(const char** s){
   LOG_FUNCENTRY(9, "FilteredFileReader::getPrevRawLine");
   LOG_FCT(9, "m_curr_line=%lu,already indexed %lu lines\n", m_curr_line, m_file_data.line_index.size()); 
-
+  SECTION_PERF("FilteredFileReader::getPrevRawLine");
+  
   if(m_curr_line > m_file_data.line_index.size()){
     throw std::runtime_error("Missing lines in index (getPrevRawLine)");
   }
@@ -214,9 +216,10 @@ bool FilteredFileReader::getNextValidLine(ProcessedLine& pl){
   LOG_FUNCENTRY(9, "FilteredFileReader::getNextValidLine");
   size_t numof_tested_lines = m_filtered_file_data->line_passes.size();
   LOG_FCT(9, "Searching for next valid line from %lu (already indexed %llu , and tested %llu)\n",  m_curr_line, m_file_data.line_index.size(), numof_tested_lines);
-
+  
   if(m_cursor >= m_file_data.size) {LOG_EXIT(); return false;}
-
+  SECTION_PERF("FilteredFileReader::getNextValidLine");
+  
 
   assert(m_curr_line <= numof_tested_lines);
 
@@ -251,15 +254,22 @@ bool FilteredFileReader::getNextValidLine(ProcessedLine& pl){
       else if(m_curr_line > m_file_data.line_index.size() )
         throw std::runtime_error("SKipped lines index");
       
-
-      pl.set_data(m_curr_line-1, s, line_size, m_config->parser.get(), m_cursor);
-      
+      {
+       // SECTION_PERF("PROCESSED_LINE_SETUP");
+        pl.set_data(m_curr_line-1, s, line_size, m_config->parser.get(), m_cursor);
+      }      
       LOG(5, "Checking if line \"%s\" is accepted..\n", SV_TO_STR(pl.raw_line).data());
       // Badly formatted: accept/reject based solely on accept_bad_format                                                                                                                         
       // Well formatted: apply filter normally
-      m_filtered_file_data->line_passes.push_back(
-        (!pl.well_formated && m_config->accept_bad_format) || 
-          (pl.well_formated && (m_config->filter == nullptr || m_config->filter->passes(&pl))));
+     
+      bool line_passes;
+      {
+        SECTION_PERF("FILTER_EVALUATION");
+        line_passes = (!pl.well_formated && m_config->accept_bad_format) || 
+          (pl.well_formated && (m_config->filter == nullptr || m_config->filter->passes(&pl)));
+      }
+
+      m_filtered_file_data->line_passes.push_back(line_passes);
       if(m_filtered_file_data->line_passes.back())
         m_filtered_file_data->valid_line_index.push_back(m_curr_line-1);
 
@@ -277,6 +287,7 @@ bool FilteredFileReader::getNextValidLine(ProcessedLine& pl){
 
 
 bool FilteredFileReader::getPreviousValidLine(ProcessedLine& pl){
+  SECTION_PERF("FilteredFileReader::getPreviousValidLine");
   while(m_curr_line > 0){
     m_curr_line--;
     m_cursor = m_file_data.line_index[m_curr_line];

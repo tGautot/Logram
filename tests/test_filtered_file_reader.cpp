@@ -239,6 +239,8 @@ TEST_CASE("FilteredFileReader::setFormat - switches the active parsing format") 
 
   SECTION("after setFormat(wrong), lines fail to parse") {
     ffr.setFormat(std::move(lf_wrong));
+    // NEED to reset Processed Line's Parsed Line after changing format to trigger re-allocation
+    pl.pl = nullptr;
     ffr.seekRawLine(0);
     ffr.getNextValidLine(pl);
     REQUIRE(pl.well_formated == false);
@@ -246,12 +248,14 @@ TEST_CASE("FilteredFileReader::setFormat - switches the active parsing format") 
 
   SECTION("after setFormat(wrong) then setFormat(correct), lines parse again") {
     ffr.setFormat(std::move(lf_wrong));
+    pl.pl = nullptr;
     ffr.seekRawLine(0);
     ffr.getNextValidLine(pl);
     REQUIRE(pl.well_formated == false);
 
     std::unique_ptr<LineFormat> lf_correct2 = getDefaultLineFormat();
     ffr.setFormat(std::move(lf_correct2));
+    pl.pl = nullptr;
     ffr.seekRawLine(0);
     ffr.getNextValidLine(pl);
     REQUIRE(pl.well_formated == true);

@@ -16,6 +16,8 @@ set(GCC_INSTALL_PREFIX /usr/bin)
 
 # If you wish to debug Logram
 # add_compile_options(-g)
+add_compile_options(-O3)
+add_definitions(-DPERF_ANALYZE_ON)
 
 # ================= BUILDING ======================================
 

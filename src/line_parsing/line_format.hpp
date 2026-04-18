@@ -198,7 +198,7 @@ public:
         idx++;
         c = fmt_str[idx];
         std::string field_name = "";
-        StrFieldStopType stsp;
+        StrFieldStopType stsp = DELIM;
         int str_n_char = 0;
         char str_stp_chr = 0;
         char field_chr = 0;
