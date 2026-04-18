@@ -294,16 +294,16 @@ void LogramTerminal::drawRows(){
     frame_str += "\r\n";
   }
   
-  char buf[80];
+  char buf[100];
 
   frame_str += ansi("bg_" + cfg.get(m_profile, CFG_SL_BG_COLOR), false);
   frame_str += ansi("fg_" + cfg.get(m_profile, CFG_SL_TXT_COLOR), false);
   if(term_state.input_mode == ACTION){
     if(term_state.latest_error.empty()){
     // Status Line
-      snprintf(buf, 80, "Status: cy%d:cx%d:lo%lu:vlo%lu (%d:%d) frame: %lu", term_state.cy, term_state.cx, term_state.line_offset, term_state.hrztl_line_offset, term_state.nrows, term_state.ncols, term_state.frame_num);
-      char buf2[81];
-      snprintf(buf2, 80, "BLK flli=%lu,frm=%lu,to=%lu,cll=%s  ", cfn->block.first_line_local_id, cfn->block.lines.front().line_num, cfn->block.lines.back().line_num, cfn->block.contains_last_line ? "true" : "false");
+      snprintf(buf, 100, "Status: cy%d:cx%d:lo%lu:hlo%lu (%d:%d) frame: %lu", term_state.cy, term_state.cx, term_state.line_offset, term_state.hrztl_line_offset, term_state.nrows, term_state.ncols, term_state.frame_num);
+      char buf2[100];
+      snprintf(buf2, 100, "BLK flli=%lu,frm=%lu,to=%lu,cll=%s,gtlid=%lu  ", cfn->block.first_line_local_id, cfn->block.lines.front().line_num, cfn->block.lines.back().line_num, cfn->block.contains_last_line ? "true" : "false", cfn->local_to_global_id.size());
       frame_str += buf;
       if(strlen(buf) + strlen(buf2) < term_state.ncols){
         frame_str += std::string(term_state.ncols-strlen(buf)-strlen(buf2), ' ');

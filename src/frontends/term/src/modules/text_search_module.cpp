@@ -103,7 +103,7 @@ void TextSearchModule::registerUserActionCallback(LogramTerminal& term) {
 };
 void TextSearchModule::registerCommandCallback(LogramTerminal& term){
   term.registerCommandCallback([](std::string& cmd, term_state_t& state, CachedFilteredFileNavigator* cfn) -> int {
-    LOG_ENTRY("LAMBDA search module command callback search");
+    LOG_ENTRY("LAMBDA search module command callback search\n");
     size_t substr_pos = cmd.find(":?");
     LOG_FCT(3, "Full command is %s, found search query at pos %lu\n", cmd.data(), substr_pos);
     if(substr_pos == 0){

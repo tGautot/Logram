@@ -204,7 +204,10 @@ line_info_t CachedFilteredFileNavigator::getLine(line_t local_line_id){
       LOG_EXIT();
       throw std::runtime_error("Missed a local<->global mapping");
     }
-    local_to_global_id.push_back(block.lines.back().line_num);
+    
+    if(block_last_line_local_id == local_to_global_id.size()){
+      local_to_global_id.push_back(block.lines.back().line_num);
+    }
 
     got_req_line = got_req_line || (block.first_line_local_id + block_size - 1 == local_line_id);
     if(got_req_line){
@@ -223,7 +226,7 @@ line_info_t CachedFilteredFileNavigator::getLine(line_t local_line_id){
 
 void CachedFilteredFileNavigator::jumpToLocalLine(line_t local_line_id){
   LOG_FUNCENTRY(5, "CachedFilteredFileNavigator::jumpToLocalLine");
-  LOG_FCT(5,"Jumping to local line %ld\n", local_line_id);
+  LOG_FCT(5,"Jumping to local line %llu\n", local_line_id);
   line_t block_last_line = block.first_line_local_id + block_size;
   if(local_line_id >= block.first_line_local_id && (local_line_id <= block_last_line || block.contains_last_line)){
     // Already in block

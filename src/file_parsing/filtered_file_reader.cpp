@@ -126,7 +126,7 @@ void FilteredFileReader::jumpToGlobalLine(line_t line_num){
 }
 
 void FilteredFileReader::jumpToLocalLine(line_t line_num){
-  LOG(9, "Jumping to local line %lu\n", line_num);
+  LOG(9, "Jumping to local line %llu\n", line_num);
   if(line_num >= m_filtered_file_data->valid_line_index.size()){
     LOG(1, "Invalid index in FilteredFileReader::jumpToLocqlLine=%llu (max is %llu)\n", line_num, m_filtered_file_data->valid_line_index.size()-1);
     throw std::runtime_error("Cannot use jumpToLocqlLine with an index that hasn't yet parsed");
@@ -258,7 +258,7 @@ bool FilteredFileReader::getNextValidLine(ProcessedLine& pl){
        // SECTION_PERF("PROCESSED_LINE_SETUP");
         pl.set_data(m_curr_line-1, s, line_size, m_config->parser.get(), m_cursor);
       }      
-      LOG(5, "Checking if line \"%s\" is accepted..\n", SV_TO_STR(pl.raw_line).data());
+      LOG(7, "Checking if line \"%s\" is accepted..\n", SV_TO_STR(pl.raw_line).data());
       // Badly formatted: accept/reject based solely on accept_bad_format                                                                                                                         
       // Well formatted: apply filter normally
      
