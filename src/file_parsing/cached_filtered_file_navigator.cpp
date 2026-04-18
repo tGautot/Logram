@@ -48,29 +48,38 @@ CachedFilteredFileNavigator::~CachedFilteredFileNavigator(){
 }
 
 void CachedFilteredFileNavigator::reset_and_refill_block(line_t around_global_line){
-  LOG_FUNCENTRY(5, "CachedFilteredFileNavigator::reset_and_refill_block");
+  LOG_FUNCENTRY(1, "CachedFilteredFileNavigator::reset_and_refill_block");
   
   local_to_global_id.clear();
   block.lines.clear();
   known_last_line = LINE_T_MAX;
   known_first_line = 0;
 
-  bool found_anchor =  false;
-  ProcessedLine pl;
-  uint32_t nread, line_local_id = 0, lines_left = block_size/2;
+  bool found_anchor =  false, recycling_storage = false;
+  ProcessedLine pl_storage;
+  ProcessedLine* pl = &pl_storage;
+  uint32_t nread, line_local_id = 0;
+  int64_t lines_left = block_size/2;
   ffr->jumpToGlobalLine(0);
   block.first_line_local_id = 0;
-  while( (block.lines.size() < block_size || lines_left > 0)  && 
-      (nread = ffr->getNextValidLine(pl)) != 0){
-    if(block.lines.full()){
-      block.first_line_local_id++;
+  while( (!block.lines.full() || lines_left > 0)  && 
+      (nread = ffr->getNextValidLine(*pl)) != 0){
+        
+    if(!recycling_storage){
+      block.lines.push_back(std::move(*pl));
+      if(block.lines.full()){
+        recycling_storage = true;
+        pl = &(block.lines.front());
+      }
+    } else {
+      block.lines.push_back();
+      pl = &(block.lines.front());
     }
-    block.lines.push_back(std::move(pl));
     LOG_FCT(9, "Read %d bytes, line is %.*s\n", nread, STRING_VIEW_PRINT(block.lines.back().raw_line));
     if(line_local_id == 0) known_first_line = block.lines[0].line_num;
-    local_to_global_id.push_back(pl.line_num);
+    local_to_global_id.push_back(pl->line_num);
     line_local_id++;
-    found_anchor = pl.line_num > around_global_line;
+    found_anchor = pl->line_num > around_global_line;
     if(found_anchor){ lines_left--; }
   }
 
