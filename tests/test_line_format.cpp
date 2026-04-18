@@ -153,3 +153,59 @@ TEST_CASE("Parser - WhitespaceField parsing") {
   delete pl;
   teardown();
 }
+
+TEST_CASE("Parser - ANY_WS stop type for STR fields") {
+  setup();
+  // When a STR field's closing } is followed by a space in the format string,
+  // fromFormatString sets stop_type = ANY_WS. This means the field should stop
+  // at the first whitespace character (space or tab).
+  auto lf = LineFormat::fromFormatString("{STR:A} {STR:B}");
+  auto p  = Parser::fromLineFormat(std::move(lf));
+  ParsedLine* pl = new ParsedLine(p->format.get());
+
+  SECTION("space-separated words") {
+    REQUIRE(p->parseLine("hello world", pl));
+    REQUIRE(*(pl->getStrField(0)) == std::string_view("hello"));
+    REQUIRE(*(pl->getStrField(1)) == std::string_view("world"));
+  }
+
+  SECTION("tab-separated words") {
+    REQUIRE(p->parseLine("hello\tworld", pl));
+    REQUIRE(*(pl->getStrField(0)) == std::string_view("hello"));
+    REQUIRE(*(pl->getStrField(1)) == std::string_view("world"));
+  }
+
+  SECTION("multiple spaces between words") {
+    REQUIRE(p->parseLine("hello   world", pl));
+    REQUIRE(*(pl->getStrField(0)) == std::string_view("hello"));
+    REQUIRE(*(pl->getStrField(1)) == std::string_view("world"));
+  }
+
+  delete pl;
+  teardown();
+}
+
+TEST_CASE("Parser - ANY_WS with mixed field types") {
+  setup();
+  // Mirrors the default log format but built via fromFormatString,
+  // so the Level field uses ANY_WS instead of DELIM.
+  auto lf = LineFormat::fromFormatString("{INT:Date} {INT:Time} {STR:Level} :{STR:Mesg}");
+  auto p  = Parser::fromLineFormat(std::move(lf));
+  ParsedLine* pl = new ParsedLine(p->format.get());
+
+  SECTION("parses Level field correctly") {
+    REQUIRE(p->parseLine("0322 085338 INFO :some message", pl));
+    REQUIRE(*(pl->getIntField(0)) == 322);
+    REQUIRE(*(pl->getIntField(1)) == 85338);
+    REQUIRE(*(pl->getStrField(0)) == std::string_view("INFO"));
+    REQUIRE(*(pl->getStrField(1)) == std::string_view("some message"));
+  }
+
+  SECTION("Level field stops at tab") {
+    REQUIRE(p->parseLine("0322 085338 INFO\t:some message", pl));
+    REQUIRE(*(pl->getStrField(0)) == std::string_view("INFO"));
+  }
+
+  delete pl;
+  teardown();
+}

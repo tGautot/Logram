@@ -93,6 +93,7 @@ bool Parser::parseLine(std::string_view line, ParsedLine* ret){
       return false;
     }
   }
+  if(iter != parsing_routine.end()) return false;
   LOG(9, "Arrived at %p, should be %p\n",  s, line.data() + line.size());
   LOG_EXIT();
   return s == line.data() + line.size();

@@ -39,7 +39,6 @@ int parse_chr(const char** s, _ChrFieldOption* p, void* res){
 }
 
 int parse_str(const char** s, _StrFieldOption* p, void* res){
-  //std::cout << "Parsing STR, stop type " << p->stop_type << ", delim " << p->delim << std::endl;
   int nchar = 0;
   auto not_eol = [&s, &nchar]()->bool{
     return  (*s)[nchar] != 0 && 
@@ -54,11 +53,10 @@ int parse_str(const char** s, _StrFieldOption* p, void* res){
     }
   }
   else if (p->stop_type == StrFieldStopType::ANY_WS){
-    char c = (*s)[nchar]; 
-    while(c != ' ' && c != '\t' && not_eol()){
+    while((*s)[nchar] != ' ' && (*s)[nchar] != '\t' && not_eol()){
       nchar++;
     }
-  } 
+  }
   else {
     throw std::runtime_error("Unknown StrFieldStopType");
   }
