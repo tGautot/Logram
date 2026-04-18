@@ -243,7 +243,7 @@ void LogramTerminal::drawRows(){
         frame_str += ansi("bg_" + cfg.get(m_profile, CFG_BG_COLOR));
       }
 
-      if(fetched_line.size() <= term_state.vert_line_offset){
+      if(fetched_line.size() <= term_state.hrztl_line_offset){
         frame_str += std::string(term_state.ncols - term_state.info_col_size, ' ') + "\r\n";
         continue;
       }
@@ -251,7 +251,7 @@ void LogramTerminal::drawRows(){
       std::string formatted_line = std::string(fetched_line);
       formatted_line.erase(std::remove(formatted_line.begin(), formatted_line.end(), '\r'), formatted_line.end());
       size_t match_pos = 0;
-      size_t first_visible_char = term_state.vert_line_offset;
+      size_t first_visible_char = term_state.hrztl_line_offset;
       size_t last_visible_char = first_visible_char + term_state.ncols - term_state.info_col_size;
       size_t added_ansi_chars = 0;
       // Setup ansi seq in formatted line to highlight the word
@@ -278,12 +278,12 @@ void LogramTerminal::drawRows(){
         match_pos += term_state.highlight_word.length() + start_invert_tag.length() + end_invert_tag.length();
       } 
 
-      formatted_line = formatted_line.substr(term_state.vert_line_offset, term_state.ncols - term_state.info_col_size + added_ansi_chars);
+      formatted_line = formatted_line.substr(term_state.hrztl_line_offset, term_state.ncols - term_state.info_col_size + added_ansi_chars);
       
       frame_str += formatted_line;
-      if(fetched_line.size() + term_state.info_col_size - term_state.vert_line_offset < term_state.ncols){
+      if(fetched_line.size() + term_state.info_col_size - term_state.hrztl_line_offset < term_state.ncols){
         frame_str += std::string(
-            std::min(static_cast<int>(term_state.ncols - term_state.info_col_size - fetched_line.size() + term_state.vert_line_offset),
+            std::min(static_cast<int>(term_state.ncols - term_state.info_col_size - fetched_line.size() + term_state.hrztl_line_offset),
                      static_cast<int>(term_state.ncols - term_state.info_col_size))
             , ' ');
       }
@@ -301,7 +301,7 @@ void LogramTerminal::drawRows(){
   if(term_state.input_mode == ACTION){
     if(term_state.latest_error.empty()){
     // Status Line
-      snprintf(buf, 80, "Status: cy%d:cx%d:lo%lu:vlo%lu (%d:%d) frame: %lu", term_state.cy, term_state.cx, term_state.line_offset, term_state.vert_line_offset, term_state.nrows, term_state.ncols, term_state.frame_num);
+      snprintf(buf, 80, "Status: cy%d:cx%d:lo%lu:vlo%lu (%d:%d) frame: %lu", term_state.cy, term_state.cx, term_state.line_offset, term_state.hrztl_line_offset, term_state.nrows, term_state.ncols, term_state.frame_num);
       char buf2[81];
       snprintf(buf2, 80, "BLK flli=%lu,frm=%lu,to=%lu,cll=%s  ", cfn->block.first_line_local_id, cfn->block.lines.front().line_num, cfn->block.lines.back().line_num, cfn->block.contains_last_line ? "true" : "false");
       frame_str += buf;

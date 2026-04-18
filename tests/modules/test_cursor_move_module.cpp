@@ -180,33 +180,33 @@ TEST_CASE("CursorMove - move right stops at ncols boundary") {
 }
 
 // ============================================================
-// Horizontal scroll via vert_line_offset
+// Horizontal scroll via hrztl_line_offset
 // ============================================================
 
-TEST_CASE("CursorMove - move right at edge increments vert_line_offset") {
+TEST_CASE("CursorMove - move right at edge increments hrztl_line_offset") {
   setup();
   auto* cfn = make_cfn();
   auto term = make_term(cfn, 25, 80, 0, 79, 0);
 
-  REQUIRE(term.term_state.vert_line_offset == 0);
+  REQUIRE(term.term_state.hrztl_line_offset == 0);
   term.handleUserAction(ACTION_MOVE_RIGHT);
-  REQUIRE(term.term_state.vert_line_offset == 1);
+  REQUIRE(term.term_state.hrztl_line_offset == 1);
   REQUIRE(term.term_state.cx == 79); // cursor stays at right edge
   teardown();
 }
 
-TEST_CASE("CursorMove - move right in middle does not change vert_line_offset") {
+TEST_CASE("CursorMove - move right in middle does not change hrztl_line_offset") {
   setup();
   auto* cfn = make_cfn();
   auto term = make_term(cfn, 25, 80, 0, 40, 0);
 
   term.handleUserAction(ACTION_MOVE_RIGHT);
   REQUIRE(term.term_state.cx == 41);
-  REQUIRE(term.term_state.vert_line_offset == 0);
+  REQUIRE(term.term_state.hrztl_line_offset == 0);
   teardown();
 }
 
-TEST_CASE("CursorMove - repeated move right at edge increments vert_line_offset each time") {
+TEST_CASE("CursorMove - repeated move right at edge increments hrztl_line_offset each time") {
   setup();
   auto* cfn = make_cfn();
   auto term = make_term(cfn, 25, 80, 0, 79, 0);
@@ -214,47 +214,47 @@ TEST_CASE("CursorMove - repeated move right at edge increments vert_line_offset 
   for (int i = 0; i < 5; i++) {
     term.handleUserAction(ACTION_MOVE_RIGHT);
   }
-  REQUIRE(term.term_state.vert_line_offset == 5);
+  REQUIRE(term.term_state.hrztl_line_offset == 5);
   REQUIRE(term.term_state.cx == 79);
   teardown();
 }
 
-TEST_CASE("CursorMove - move left at info_col with vert_line_offset > 0 decrements it") {
+TEST_CASE("CursorMove - move left at info_col with hrztl_line_offset > 0 decrements it") {
   setup();
   auto* cfn = make_cfn();
   auto term = make_term(cfn, 25, 80, 0, 0, 0);
   int info_col = term.term_state.info_col_size;
   term.term_state.cx = info_col;
-  term.term_state.vert_line_offset = 3;
+  term.term_state.hrztl_line_offset = 3;
 
   term.handleUserAction(ACTION_MOVE_LEFT);
-  REQUIRE(term.term_state.vert_line_offset == 2);
+  REQUIRE(term.term_state.hrztl_line_offset == 2);
   REQUIRE(term.term_state.cx == info_col); // cursor stays at left edge
   teardown();
 }
 
-TEST_CASE("CursorMove - move left at info_col with vert_line_offset == 0 stays at 0") {
+TEST_CASE("CursorMove - move left at info_col with hrztl_line_offset == 0 stays at 0") {
   setup();
   auto* cfn = make_cfn();
   auto term = make_term(cfn, 25, 80, 0, 0, 0);
   int info_col = term.term_state.info_col_size;
   term.term_state.cx = info_col;
-  term.term_state.vert_line_offset = 0;
+  term.term_state.hrztl_line_offset = 0;
 
   term.handleUserAction(ACTION_MOVE_LEFT);
-  REQUIRE(term.term_state.vert_line_offset == 0);
+  REQUIRE(term.term_state.hrztl_line_offset == 0);
   REQUIRE(term.term_state.cx == info_col);
   teardown();
 }
 
-TEST_CASE("CursorMove - move left in middle does not change vert_line_offset") {
+TEST_CASE("CursorMove - move left in middle does not change hrztl_line_offset") {
   setup();
   auto* cfn = make_cfn();
   auto term = make_term(cfn, 25, 80, 0, 40, 0);
-  term.term_state.vert_line_offset = 5;
+  term.term_state.hrztl_line_offset = 5;
 
   term.handleUserAction(ACTION_MOVE_LEFT);
   REQUIRE(term.term_state.cx == 39);
-  REQUIRE(term.term_state.vert_line_offset == 5); // unchanged
+  REQUIRE(term.term_state.hrztl_line_offset == 5); // unchanged
   teardown();
 }

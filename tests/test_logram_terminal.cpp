@@ -663,10 +663,10 @@ TEST_CASE("drawRows - long raw input not truncated") {
 }
 
 // ============================================================
-// drawRows — horizontal scroll (vert_line_offset)
+// drawRows — horizontal scroll (hrztl_line_offset)
 // ============================================================
 
-TEST_CASE("drawRows - vert_line_offset hides beginning of lines") {
+TEST_CASE("drawRows - hrztl_line_offset hides beginning of lines") {
   setup();
   auto* cfn = make_cfn();
   LogramTerminal term(cfn);
@@ -682,8 +682,8 @@ TEST_CASE("drawRows - vert_line_offset hides beginning of lines") {
   // First line starts with "0322 " — pick a prefix that will be clipped
   std::string prefix = full_line.substr(0, 10);
 
-  // Draw with vert_line_offset that clips the prefix
-  term.term_state.vert_line_offset = 15;
+  // Draw with hrztl_line_offset that clips the prefix
+  term.term_state.hrztl_line_offset = 15;
   term.frame_str = "";
   term.drawRows();
 
@@ -695,14 +695,14 @@ TEST_CASE("drawRows - vert_line_offset hides beginning of lines") {
   teardown();
 }
 
-TEST_CASE("drawRows - vert_line_offset 0 shows line from start") {
+TEST_CASE("drawRows - hrztl_line_offset 0 shows line from start") {
   setup();
   auto* cfn = make_cfn();
   LogramTerminal term(cfn);
   term.term_state.nrows = 5;
   term.term_state.ncols = 120;
   term.term_state.line_offset = 0;
-  term.term_state.vert_line_offset = 0;
+  term.term_state.hrztl_line_offset = 0;
 
   term.updateDisplayState();
   term.frame_str = "";
@@ -715,7 +715,7 @@ TEST_CASE("drawRows - vert_line_offset 0 shows line from start") {
   teardown();
 }
 
-TEST_CASE("drawRows - vert_line_offset beyond line length renders blank") {
+TEST_CASE("drawRows - hrztl_line_offset beyond line length renders blank") {
   setup();
   auto* cfn = make_cfn();
   LogramTerminal term(cfn);
@@ -728,8 +728,8 @@ TEST_CASE("drawRows - vert_line_offset beyond line length renders blank") {
   REQUIRE(pl != nullptr);
   std::string full_line(pl->raw_line);
 
-  // Set vert_line_offset beyond the length of any line
-  term.term_state.vert_line_offset = full_line.size() + 50;
+  // Set hrztl_line_offset beyond the length of any line
+  term.term_state.hrztl_line_offset = full_line.size() + 50;
   term.frame_str = "";
   term.drawRows();
 
@@ -741,7 +741,7 @@ TEST_CASE("drawRows - vert_line_offset beyond line length renders blank") {
   teardown();
 }
 
-TEST_CASE("drawRows - vert_line_offset shifts visible window") {
+TEST_CASE("drawRows - hrztl_line_offset shifts visible window") {
   setup();
   auto* cfn = make_cfn();
   LogramTerminal term(cfn);
@@ -750,14 +750,14 @@ TEST_CASE("drawRows - vert_line_offset shifts visible window") {
   term.term_state.line_offset = 0;
 
   // Frame at offset 0
-  term.term_state.vert_line_offset = 0;
+  term.term_state.hrztl_line_offset = 0;
   term.updateDisplayState();
   term.frame_str = "";
   term.drawRows();
   std::string frame_at_0 = term.frame_str;
 
   // Frame at offset 20
-  term.term_state.vert_line_offset = 20;
+  term.term_state.hrztl_line_offset = 20;
   term.updateDisplayState();
   term.frame_str = "";
   term.drawRows();
@@ -777,7 +777,7 @@ TEST_CASE("drawRows - vert_line_offset shifts visible window") {
 }
 
 
-TEST_CASE("drawRows - vert_line_offset with highlight word visible") {
+TEST_CASE("drawRows - hrztl_line_offset with highlight word visible") {
   setup();
   auto* cfn = make_cfn();
   LogramTerminal term(cfn);
@@ -786,8 +786,8 @@ TEST_CASE("drawRows - vert_line_offset with highlight word visible") {
   term.term_state.line_offset = 0;
   term.term_state.highlight_word = "INFO";
 
-  // With vert_line_offset=0, INFO lines show highlighting (invert ansi seq)
-  term.term_state.vert_line_offset = 0;
+  // With hrztl_line_offset=0, INFO lines show highlighting (invert ansi seq)
+  term.term_state.hrztl_line_offset = 0;
   term.updateDisplayState();
   term.frame_str = "";
   term.drawRows();
@@ -797,7 +797,7 @@ TEST_CASE("drawRows - vert_line_offset with highlight word visible") {
   teardown();
 }
 
-TEST_CASE("drawRows - vert_line_offset past highlight word skips highlighting") {
+TEST_CASE("drawRows - hrztl_line_offset past highlight word skips highlighting") {
   setup();
   auto* cfn = make_cfn();
   LogramTerminal term(cfn);
@@ -809,7 +809,7 @@ TEST_CASE("drawRows - vert_line_offset past highlight word skips highlighting") 
   term.term_state.highlight_word = "0322";
 
   // Scroll past "0322" (it's at positions 0-3)
-  term.term_state.vert_line_offset = 10;
+  term.term_state.hrztl_line_offset = 10;
   term.updateDisplayState();
   term.frame_str = "";
   term.drawRows();
@@ -822,14 +822,14 @@ TEST_CASE("drawRows - vert_line_offset past highlight word skips highlighting") 
   teardown();
 }
 
-TEST_CASE("drawRows - consistent with vert_line_offset between repeated calls") {
+TEST_CASE("drawRows - consistent with hrztl_line_offset between repeated calls") {
   setup();
   auto* cfn = make_cfn();
   LogramTerminal term(cfn);
   term.term_state.nrows = 10;
   term.term_state.ncols = 100;
   term.term_state.line_offset = 5;
-  term.term_state.vert_line_offset = 15;
+  term.term_state.hrztl_line_offset = 15;
 
   term.updateDisplayState();
   term.frame_str = "";

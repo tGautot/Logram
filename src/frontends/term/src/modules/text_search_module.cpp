@@ -33,13 +33,23 @@ static line_t search(term_state_t& state, CachedFilteredFileNavigator* cfn, bool
     size_t vert_offset = std::max(state.nrows / 2, 1) - 1;
     if(forward){
       if((size_t) state.cy >= vert_offset){
-        state.line_offset = line_num - state.cy;
+        if((size_t) state.cy > line_num){
+          state.line_offset = 0;
+          state.cy = line_num;
+        } else {
+          state.line_offset = line_num - state.cy;
+        }
       } else {
         if(line_num <= state.line_offset + vert_offset){
           state.cy = line_num - state.line_offset;
         } else {
-          state.cy = vert_offset;
-          state.line_offset = line_num - state.cy;
+          if((size_t) state.cy > line_num){
+            state.cy = line_num;
+            state.line_offset = 0;
+          } else {
+            state.cy = vert_offset;
+            state.line_offset = line_num - state.cy;
+          }
         }
       }
     } else {
@@ -54,8 +64,13 @@ static line_t search(term_state_t& state, CachedFilteredFileNavigator* cfn, bool
         if(line_num >= state.line_offset + vert_offset){
           state.cy = line_num - state.line_offset;
         } else {
-          state.cy = vert_offset;
-          state.line_offset = line_num - state.cy;
+          if((size_t) state.cy > line_num){
+            state.line_offset = 0;
+            state.cy = line_num;
+          } else {
+            state.cy = vert_offset;
+            state.line_offset = line_num - state.cy;
+          }
         }
       }
     }

@@ -33,14 +33,14 @@ void CursorMoveModule::registerUserActionCallback(LogramTerminal& term){
       if(term_state.cx > term_state.info_col_size){
         term_state.cx--;
       } else {
-        if(term_state.vert_line_offset>0) term_state.vert_line_offset--;
+        if(term_state.hrztl_line_offset>0) term_state.hrztl_line_offset--;
       }
     }
     else if(act == ACTION_MOVE_RIGHT){
       if(term_state.cx < term_state.ncols - 1){
         term_state.cx++;
       } else {
-        term_state.vert_line_offset++;
+        term_state.hrztl_line_offset++;
       }
     }
 
