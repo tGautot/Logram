@@ -23,6 +23,8 @@ public:
   ProcessedLine(ProcessedLine&&) = default;
   ~ProcessedLine() = default;
 
+  void swap(ProcessedLine& other);
+
   void set_data(line_t line, const char* s, size_t n_char, Parser* p,file_pos_t strm_pos);
 
 };

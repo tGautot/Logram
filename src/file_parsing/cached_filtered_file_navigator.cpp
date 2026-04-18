@@ -54,34 +54,34 @@ void CachedFilteredFileNavigator::reset_and_refill_block(line_t around_global_li
   block.lines.clear();
   known_last_line = LINE_T_MAX;
   known_first_line = 0;
+  block.contains_last_line = false;
 
-  bool found_anchor =  false, recycling_storage = false;
-  ProcessedLine pl_storage;
-  ProcessedLine* pl = &pl_storage;
+  bool found_anchor =  false;
+  ProcessedLine pl;
   uint32_t nread, line_local_id = 0;
   int64_t lines_left = block_size/2;
   ffr->jumpToGlobalLine(0);
   block.first_line_local_id = 0;
   while( (!block.lines.full() || lines_left > 0)  && 
-      (nread = ffr->getNextValidLine(*pl)) != 0){
+      (nread = ffr->getNextValidLine(pl)) != 0){
         
-    if(!recycling_storage){
-      block.lines.push_back(std::move(*pl));
-      if(block.lines.full()){
-        recycling_storage = true;
-        pl = &(block.lines.front());
-      }
+    if(!block.lines.full()){
+      block.lines.push_back(std::move(pl));
     } else {
+      // We swap so that pl doesn't go back to having nullptr for parsed line, which would trigger an allocation on nextGetValidLine
+      block.lines.front().swap(pl);
       block.lines.push_back();
-      pl = &(block.lines.front());
+      block.first_line_local_id++;
     }
+
     LOG_FCT(9, "Read %d bytes, line is %.*s\n", nread, STRING_VIEW_PRINT(block.lines.back().raw_line));
     if(line_local_id == 0) known_first_line = block.lines[0].line_num;
-    local_to_global_id.push_back(pl->line_num);
+    local_to_global_id.push_back(pl.line_num);
     line_local_id++;
-    found_anchor = pl->line_num > around_global_line;
+    found_anchor = pl.line_num > around_global_line;
     if(found_anchor){ lines_left--; }
   }
+  LOG(1, "Finished reseting at line %lu. full=%d, lines_left=%ld, nread=%lu\n", line_local_id, block.lines.full(), lines_left, nread);
 
   if(nread == 0){
     block.contains_last_line = true;
@@ -126,7 +126,7 @@ void CachedFilteredFileNavigator::print_lines_in_block(){
 
 line_info_t CachedFilteredFileNavigator::getLine(line_t local_line_id){
   LOG_FUNCENTRY(9, "CachedFilteredFileNavigator::getLine");
-  LOG_FCT(9, "Looking for line %llu, block rqnge is [%llu, %llu[\n", local_line_id, block.first_line_local_id, block.first_line_local_id + block.size());
+  LOG_FCT(9, "Looking for line %llu, block rqnge is [%llu, %llu[, cll=%d\n", local_line_id, block.first_line_local_id, block.first_line_local_id + block.size(), block.contains_last_line);
   if(local_line_id >= block.first_line_local_id && (local_line_id < block.first_line_local_id + block.size() || block.contains_last_line) ){
     if( (block.contains_last_line) && local_line_id >= block.first_line_local_id + block.size() ){
       return {nullptr, INFO_EOF};

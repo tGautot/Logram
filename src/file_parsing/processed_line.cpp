@@ -23,3 +23,11 @@ void  ProcessedLine::set_data(line_t line, const char* s, size_t n_char, Parser*
   }
   stt_pos = strm_pos;
 }
+
+void ProcessedLine::swap(ProcessedLine& other){
+  std::swap(stt_pos, other.stt_pos);
+  std::swap(line_num, other.line_num);
+  std::swap(raw_line, other.raw_line);
+  std::swap(pl, other.pl);
+  std::swap(well_formated, other.well_formated);
+}
