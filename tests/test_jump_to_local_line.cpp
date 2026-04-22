@@ -334,3 +334,42 @@ TEST_CASE("jumpToLocalLine - filtered: all lines accessible after full traversal
 
   teardown();
 }
+
+// ============================================================
+// getLine forward-extension into already-mapped territory
+//
+// Exercises the path at cached_filtered_file_navigator.cpp:198 after
+// the mapping has been fully filled. The bug fixed in 40f26b2 caused an
+// unconditional push_back to local_to_global_id, duplicating entries
+// and breaking monotonicity. The block contents stayed correct, so the
+// content-only test above missed it.
+// ============================================================
+
+TEST_CASE("getLine - forward extension into known territory keeps mapping stable") {
+  setup();
+  auto* cfn = make_info_filtered_cfn(5);
+
+  // Fully fill the mapping by reaching EOF.
+  cfn->jumpToLocalLine(LINE_T_MAX);
+  size_t mapping_size_after_full = cfn->local_to_global_id.size();
+  REQUIRE(mapping_size_after_full == FILTERED_LINES);
+
+  // Come back to the beginning via the "known place" path in jumpToLocalLine.
+  cfn->jumpToLocalLine(0);
+
+  // Walk forward, which repeatedly triggers getLine's forward-extension into
+  // territory that is already mapped. Pre-fix: each extension step appended
+  // a duplicate to local_to_global_id, growing its size and breaking
+  // monotonicity.
+  for (int i = 0; i < FILTERED_LINES; i++) {
+    line_info_t info = cfn->getLine(i);
+    REQUIRE(info.line != nullptr);
+    REQUIRE(SV_TO_STR(info.line->raw_line) == SV_TO_STR(info_and_bf_lines[i]));
+    // Mapping size must not grow — we're revisiting known locals.
+    REQUIRE(cfn->local_to_global_id.size() == mapping_size_after_full);
+  }
+
+  check_mapping_monotonic(cfn);
+
+  teardown();
+}
