@@ -74,7 +74,14 @@ static line_t search(term_state_t& state, CachedFilteredFileNavigator* cfn, bool
         }
       }
     }
-    state.cx = char_pos + state.info_col_size;
+    
+    if(char_pos + match_str.size() > state.hrztl_line_offset + state.ncols - state.info_col_size){
+      state.hrztl_line_offset = char_pos + match_str.size() - state.ncols + state.info_col_size;
+    }
+    if(char_pos < state.hrztl_line_offset){
+      state.hrztl_line_offset = char_pos;
+    }
+    state.cx = char_pos + state.info_col_size - state.hrztl_line_offset;
   }
   return line_num;
 }

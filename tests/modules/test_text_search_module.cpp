@@ -136,7 +136,7 @@ TEST_CASE("TextSearchModule - search sets cx to match position") {
   // Raw line: "0322 085424 TRACE  :......router_forward_getOI:         route handle:   LASTLINE"
   std::string raw = "0322 085424 TRACE  :......router_forward_getOI:         route handle:   LASTLINE";
   size_t expected_pos = raw.find("LASTLINE");
-  REQUIRE(term.term_state.cx == (int)(expected_pos + term.term_state.info_col_size));
+  REQUIRE(term.term_state.cx + term.term_state.hrztl_line_offset == (int)(expected_pos + term.term_state.info_col_size));
 
   teardown();
 }
