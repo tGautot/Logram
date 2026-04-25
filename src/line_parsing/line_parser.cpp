@@ -1,5 +1,6 @@
 #include "line_parser.hpp"
 #include <memory>
+#include "line_format.hpp"
 #include "logging.hpp"
 #include "perf_analyzer.hpp"
 
@@ -93,7 +94,10 @@ bool Parser::parseLine(std::string_view line, ParsedLine* ret){
       return false;
     }
   }
-  if(iter != parsing_routine.end()) return false;
+  if(iter != parsing_routine.end()){
+    // The only way we allow parsing to NOT reach the end, is if there is only one field left, and it's a str field
+    return iter+1 == parsing_routine.end() && (*iter)->ft == FieldType::STR; 
+  }
   LOG(9, "Arrived at %p, should be %p\n",  s, line.data() + line.size());
   LOG_EXIT();
   return s == line.data() + line.size();
