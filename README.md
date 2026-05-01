@@ -4,6 +4,12 @@
 
 `vim` and `grep` are powerful, but they treat your logs as plain text. Logram lets you **define the structure** of your log lines, then navigate, filter, and search based on what the fields *mean* — not just what they look like.
 
+
+
+https://github.com/user-attachments/assets/a640a47d-2b98-48c1-b07d-d1a5f8abb693
+
+
+
 ---
 
 ## The problem Logram solves
