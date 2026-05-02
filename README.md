@@ -33,7 +33,7 @@ With Logram, you define the format of your logs once:
 
 This extracts `Date`, `Time`, `Level`, `Source`, and `Message` as typed, named fields. From there you can filter by field — `Level EQUAL ERROR`, `Source BEGINS_WITH retry`, `Time GREATER 085339` — and combine conditions with `AND`, `OR`, `XOR` logic. Only matching lines are shown. Navigate with vim-style keys, search with `/pattern`, and get to the lines that matter.
 
-| | vim | grep / tail | Logram |
+| | vim | grep | Logram |
 |---|-------------|--------|--------|
 | Handles GB-scale files | Yes | Yes | Yes |
 | Combine multiple filters | No | Awkward | Yes |
@@ -81,7 +81,7 @@ make
 ### Run
 
 ```bash
-./build/bin/lgm path/to/your.log
+.bin/lgm path/to/your.log
 ```
 
 On first open, Logram creates a profile for this file in `~/.logram`. Set your [format string](https://logram.readthedocs.io/en/latest/format-strings/), and it will be remembered next time.
