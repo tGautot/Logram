@@ -95,7 +95,7 @@ For a detailed guide on all of Logram's capabilities, refer to the [full documen
 - [Getting started](https://logram.readthedocs.io/en/latest/getting-started/) — build, install, first steps
 - [Format strings](https://logram.readthedocs.io/en/latest/format-strings/) — how to define your log structure
 - [Filtering](https://logram.readthedocs.io/en/latest/filtering/) — field-based filters, comparators, boolean composition
-- [Keybindings](https://logram.readthedocs.io/en/latest/keybindings/) — all navigation, search, and command-mode bindings
+- [Keybindings](https://logram.readthedocs.io/en/latest/keybindings/) — navigation, search, and command-mode bindings
 - [Modules](https://logram.readthedocs.io/en/latest/modules/) — extending Logram with custom interactive behaviors
 
 ---

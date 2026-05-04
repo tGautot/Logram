@@ -39,6 +39,19 @@ void FilterManagementModule::registerCommandCallback(LogramTerminal& lpt) {
       return 1;
     }
 
+    if(cmd.find(":fpop") == 0){
+      std::shared_ptr<LineFilter> curr_filter = cfn->getFilter();
+      CombinedFilter* cf = dynamic_cast<CombinedFilter*>(curr_filter.get());
+      if(cf != nullptr){
+        update_term_state_with_filter(cf->left_filter);
+      } else if (curr_filter != nullptr) {  
+        update_term_state_with_filter(nullptr);
+      } else {
+        throw std::runtime_error("No filter is active");
+      }
+      return 1;
+    }
+
     LineFormat* lf = cfn->getLineFormat() ;
     if(lf == nullptr){
       throw std::runtime_error("Cannot set filter without having specified a line format");

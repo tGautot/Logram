@@ -53,7 +53,7 @@ int parse_str(const char** s, _StrFieldOption* p, void* res){
     }
   }
   else if (p->stop_type == StrFieldStopType::ANY_WS){
-    while((*s)[nchar] != ' ' && (*s)[nchar] != '\t' && not_eol()){
+    while(!std::isspace((*s)[nchar]) && not_eol()){
       nchar++;
     }
   }
@@ -68,6 +68,6 @@ int parse_str(const char** s, _StrFieldOption* p, void* res){
 }
 
 int parse_ws(const char** s){
-  while(**s != 0 && **s != '\n' && (**s == ' ' || **s == '\t')){(*s)++;}
+  while(**s != 0 && **s != '\n' && std::isspace(**s)){(*s)++;}
   return 0;
 }
