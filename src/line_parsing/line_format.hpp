@@ -2,6 +2,7 @@
 #define LINE_FORMAT_HPP
 
 #include <memory>
+#include <stdexcept>
 #include <string>
 #include <vector>
 #include <map>
@@ -174,111 +175,123 @@ public:
   }
 
   static std::unique_ptr<LineFormat> fromFormatString(const std::string& fmt_str){
-    // TODO Improve...
-    
-    std::unique_ptr<LineFormat> lf = std::make_unique<LineFormat>();
-    
-    // Fmt string might look something like this
-    // {INT:time}-{STR:day} {DBL} [{STR:func}:{INT:linenum}] {STR:freetext}
-    
+    // Grammar:
+    //   Outside {...}: each char becomes a literal LineChrField; ' ' becomes WhitespaceField.
+    //   {TAG:name}            no-param form
+    //   {TAG:name,params...}  parameterized form (params depend on the tag)
+    // Tag is whatever appears between '{' and ':' -- length is not fixed.
+    // Currently supported:
+    //   {INT:name}
+    //   {DBL:name}
+    //   {CHR:name,c,r}    literal char `c`; r != '0' means it may repeat
+    //   {STR:name}        stops at the char following '}', or any whitespace if that char is ' '
+    //   {STR:name,N}      fixed-length string of N chars
+    //
+    // To add a new tag: declare its LineField subclass, then add a branch in the
+    // dispatch below (and in the param section if it takes parameters).
+
+    auto lf = std::make_unique<LineFormat>();
+    const size_t n = fmt_str.size();
     size_t idx = 0;
 
-    while(idx < fmt_str.size()){
-      char c = fmt_str[idx];
-      if(c != '{'){
-        if(c == ' '){
-          lf->addField(new WhitespaceField());
-        } else {
-          lf->addField(new LineChrField("", c, false));
-        }
-        idx++;
-      } else {
-        // Only available tags at the moment are INT DBL STR CHR, can differentiate just by first char
-        // TODO check string length before fetching the chars
-        idx++;
-        c = fmt_str[idx];
-        std::string field_name = "";
-        StrFieldStopType stsp = DELIM;
-        int str_n_char = 0;
-        char str_stp_chr = 0;
-        char field_chr = 0;
-        bool chr_repeat = false;
-        
-        if(fmt_str[idx+3] == ':'){
-          size_t name_begin = idx+4;
-          size_t name_end = name_begin;
-          while(true){
-            char cc = fmt_str[name_end]; 
-            if(cc == 0 || cc == ',' || cc == '}') break;
-            name_end++;
-          }
-          field_name = fmt_str.substr(name_begin, name_end-name_begin);
+    auto fail = [&](const char* msg){
+      throw std::runtime_error(
+          std::string("LineFormat::fromFormatString: ") + msg +
+          " (offset " + std::to_string(idx) + " in \"" + fmt_str + "\")");
+    };
 
-          if(',' == fmt_str[name_end]){
-            if(c == 'S'){
-              str_n_char = atoi(fmt_str.data() + name_end + 1);
-              idx = name_end+1;
-              while(fmt_str[idx] >= '0' && fmt_str[idx] <= '9'){
-                idx++;
-              }
-              if(fmt_str[idx] != '}') throw std::exception();
-              stsp = NCHAR;
-              idx++; 
-            } else if(c == 'C'){
-              idx = name_end+1;
-              field_chr = fmt_str[idx];
-              if(fmt_str[idx+1] != ',') throw std::exception();
-              idx+=2;
-              chr_repeat = fmt_str[idx] != '0';
-              if(fmt_str[idx+1] != '}') throw std::exception();
-              idx += 2;
-            } else {
-              // TODO throw error, only STR and CHR have params at the moment
-              throw std::exception();
-              
-            }
-          }
-          else if('}' == fmt_str[name_end] && c == 'S'){
-            if(fmt_str[name_end+1] == ' '){
-              stsp = ANY_WS;
-            } else {
-              stsp = DELIM;
-              str_stp_chr = fmt_str[name_end+1]; // Also works if fmt_str[name_end+1] == 0 
-            }
-            idx = name_end+1;
-          }
-          else{
-            idx = name_end + 1;
-          }
-        }
+    while(idx < n){
+      const char c0 = fmt_str[idx];
 
-
-        switch (c)
-        {
-        case 'I':
-          lf->addField(new LineIntField(field_name));
-          break;
-        case 'D':
-          lf->addField(new LineDblField(field_name));
-          break;
-        case 'S':
-          lf->addField(new LineStrField(field_name, stsp, str_stp_chr, str_n_char));
-          break;
-        case 'C':
-          lf->addField(new LineChrField(field_name, field_chr, chr_repeat));
-          break;
-        
-        default:
-          throw std::exception();
-          break;
-        }
-
-
-
+      // Literal char outside a tag.
+      if(c0 != '{'){
+        if(c0 == ' ') lf->addField(new WhitespaceField());
+        else          lf->addField(new LineChrField("", c0, false));
+        ++idx;
+        continue;
       }
+
+      // Tag layout: '{' TAG ':' NAME (',' PARAMS)? '}'
+
+      // 1. Find the ':' that ends the tag.
+      const size_t tag_begin = idx + 1;
+      size_t colon = tag_begin;
+      while(colon < n && fmt_str[colon] != ':' && fmt_str[colon] != '}'){
+        ++colon;
+      }
+      if(colon >= n || fmt_str[colon] != ':') fail("expected ':' after tag");
+      const std::string tag = fmt_str.substr(tag_begin, colon - tag_begin);
+      if(tag.empty()) fail("empty tag");
+
+      // 2. Read name up to ',' or '}'.
+      const size_t name_begin = colon + 1;
+      size_t name_end = name_begin;
+      while(name_end < n && fmt_str[name_end] != ',' && fmt_str[name_end] != '}'){
+        ++name_end;
+      }
+      if(name_end >= n) fail("unterminated tag, expected ',' or '}'");
+      const std::string name = fmt_str.substr(name_begin, name_end - name_begin);
+
+      // 3. Parse params (if any) and locate the position after '}'.
+      StrFieldStopType str_stop = DELIM;
+      int  str_nchar  = 0;
+      char str_delim  = 0;
+      char chr_target = 0;
+      bool chr_repeat = false;
+      size_t next_idx = 0;
+
+      if(fmt_str[name_end] == ','){
+        size_t p = name_end + 1;
+
+        if(tag == "STR"){
+          // {STR:name,N}
+          if(p >= n || fmt_str[p] < '0' || fmt_str[p] > '9'){
+            fail("STR ',' form requires a digit count");
+          }
+          str_nchar = std::atoi(fmt_str.data() + p);
+          while(p < n && fmt_str[p] >= '0' && fmt_str[p] <= '9') ++p;
+          if(p >= n || fmt_str[p] != '}') fail("STR count must be followed by '}'");
+          str_stop = NCHAR;
+          next_idx = p + 1;
+
+        } else if(tag == "CHR"){
+          // {CHR:name,c,r}
+          if(p + 3 >= n)             fail("truncated CHR params, expected 'c,r}'");
+          chr_target = fmt_str[p];
+          if(fmt_str[p + 1] != ',')  fail("CHR target must be followed by ','");
+          chr_repeat = fmt_str[p + 2] != '0';
+          if(fmt_str[p + 3] != '}')  fail("CHR repeat flag must be followed by '}'");
+          next_idx = p + 4;
+
+        } else {
+          fail("tag does not accept parameters");
+        }
+
+      } else {
+        // No-param form: '}' closes the tag.
+        next_idx = name_end + 1;
+
+        if(tag == "STR"){
+          // STR with no count: stop at the char following '}', or ANY_WS if it's a space.
+          const char follow = (next_idx < n) ? fmt_str[next_idx] : '\0';
+          if(follow == ' '){
+            str_stop = ANY_WS;
+          } else {
+            str_stop = DELIM;
+            str_delim = follow;
+          }
+        }
+      }
+
+      // 4. Construct the field.
+      if      (tag == "INT") lf->addField(new LineIntField(name));
+      else if (tag == "DBL") lf->addField(new LineDblField(name));
+      else if (tag == "STR") lf->addField(new LineStrField(name, str_stop, str_delim, str_nchar));
+      else if (tag == "CHR") lf->addField(new LineChrField(name, chr_target, chr_repeat));
+      else                   fail("unknown tag");
+
+      idx = next_idx;
     }
-
-
 
     return lf;
   }
