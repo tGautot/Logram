@@ -20,7 +20,7 @@ int main(int argc, char** argv){
   std::string file_path = argv[1];
   
   // Set the format to whatever fits the file you are using
-  std::string line_format_str = "{INT:Date} {INT:Time} {INT:Tid} {STR:Level} {STR:Source}: {STR:Mesg}";
+  std::string line_format_str = "{DATE:Date,YYMMDD hhmmss} {INT:Tid} {STR:Level} {STR:Source}: {STR:Mesg}";
   //std::string active_filter_str = "";
 
   std::unique_ptr<LineFormat> line_format;

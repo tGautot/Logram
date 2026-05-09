@@ -1,5 +1,6 @@
 #include "parsing_basics.hpp"
 #include "line_format.hpp"
+#include "perf_analyzer.hpp"
 #include <algorithm>
 #include <cctype>
 #include <cstdint>
@@ -224,12 +225,29 @@ PARSE_DATETIME_PART_FUNC(min)
 PARSE_DATETIME_PART_FUNC(sec)
 PARSE_DATETIME_PART_FUNC(ms)
 
+// Returns days since 1970-01-01 handling leap years.
+// from: http://howardhinnant.github.io/date_algorithms.html#days_from_civil                                                                                                              
+constexpr int64_t days_from_civil(int y, unsigned m, unsigned d) noexcept {                                                                                                                 
+  y -= m <= 2;                                                                                                                                                                              
+  const int era = (y >= 0 ? y : y - 399) / 400;                                                                                                                                             
+  const unsigned yoe = static_cast<unsigned>(y - era * 400);                                                                                                                                
+  const unsigned doy = (153 * (m + (m > 2 ? -3 : 9)) + 2) / 5 + d - 1;                                                                                                                      
+  const unsigned doe = yoe * 365 + yoe/4 - yoe/100 + doy;                                                                                                                                   
+  return era * 146097LL + static_cast<int64_t>(doe) - 719468;                                                                                                                               
+}                                                                                                                                                                                           
+                                                                                                                                                                                            
+static inline int64_t utc_epoch_seconds(int y, unsigned mo, unsigned d,                                                                                                                     
+                                        unsigned h, unsigned mi, unsigned s) {
+  return days_from_civil(y, mo, d) * 86400LL                                                                                                                                                
+        + int64_t(h) * 3600 + int64_t(mi) * 60 + int64_t(s);
+}
+
 
 int parse_date(const char** s, _DateFieldOption* p, int64_t* res){
   // TODO: parse `*s` according to `p->format` (e.g. "YYYY-MM-DD hh:mm:ss.fff"),
   // write the parsed date into `*res` (representation up to caller -- e.g. epoch ms),
   // advance `*s` past the consumed characters, and return 0 on success / -1 on failure.
-
+  
   if(p->parsing_routine.size() == 0){
     // A datetime parsing routine is a sequence n steps from two different categories:
     //  1. Parsing a "value char"
@@ -240,7 +258,7 @@ int parse_date(const char** s, _DateFieldOption* p, int64_t* res){
     // When parsing any of those char (e.g. the 0), we want the parsing function to known where to put/update the datetime value
     // So we can simply give it the address of the datetime function  
     
-    
+    LOG(3, "Rebuilding date format parsing routine\n");
     for(auto c : p->format){
       switch(c){
         case 'Y':
@@ -270,29 +288,26 @@ int parse_date(const char** s, _DateFieldOption* p, int64_t* res){
       }
     }
   }
-
+  
   datetime_t t{};
+  {
+    SECTION_PERF("PARSE_DATE");
+    
 
-  for(size_t i = 0; i < p->parsing_routine.size(); i++){
-    auto step = p->parsing_routine[i];
-    bool res = step.func(**s, &t, step.param_c);
-    if(!res) return -1;
-    (*s)++;
+    for(size_t i = 0; i < p->parsing_routine.size(); i++){
+      auto step = p->parsing_routine[i];
+      bool res = step.func(**s, &t, step.param_c);
+      if(!res) return -1;
+      (*s)++;
+    }
+
   }
 
-  
-  struct tm c_datetime{};
-  c_datetime.tm_sec = t.sec;
-  c_datetime.tm_min = t.min;
-  c_datetime.tm_hour = t.hr;
-  c_datetime.tm_mday = t.day;
-  c_datetime.tm_mon = std::max(t.month - 1, 0);
-  c_datetime.tm_year = std::max(t.yr - 1900, 0);
-  c_datetime.tm_isdst = -1;
-  
-  
-  std::time_t c_timestamp = std::mktime(&c_datetime);
-  *res = ((int64_t)c_timestamp) * 1000 + t.ms;
-  LOG(3, "Sec timestamp: %lld, Final timestamp:%lld\n", c_timestamp, c_timestamp * 1000 + t.ms);
+  {
+    SECTION_PERF("COMPUTE DATE");
+    int64_t c_timestamp = utc_epoch_seconds(t.yr, t.month, t.day, t.hr, t.min, t.sec);
+    *res = ((int64_t)c_timestamp) * 1000 + t.ms;
+    LOG(9, "Sec timestamp: %lld, Final timestamp:%lld\n", c_timestamp, c_timestamp * 1000 + t.ms);
+  }
   return 0;
 }

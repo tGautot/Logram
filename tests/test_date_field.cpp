@@ -12,7 +12,7 @@
 //      and the field-count accessors. Independent of parse_date; passes now.
 //   2. End-to-end parsing -- feeds real lines through Parser::parseLine.
 //      Depends on parse_date being implemented in parsing_basics.cpp.
-//      Expected values are produced by `expected_local_epoch_ms` below, which
+//      Expected values are produced by `expected_utc_epoch_ms` below, which
 //      mirrors parse_date's representation: local-time mktime() seconds * 1000
 //      + ms, routed through std::chrono::system_clock for clarity. Both sides
 //      use mktime() so DST/timezone effects cancel out on a single host.
@@ -20,7 +20,7 @@
 // Mirrors parse_date's representation:
 //   epoch milliseconds derived from a local-time mktime(), plus the ms field.
 // Wrapped through std::chrono::system_clock::from_time_t for clarity.
-static int64_t expected_local_epoch_ms(int year, int mo, int day,
+static int64_t expected_utc_epoch_ms(int year, int mo, int day,
                                        int hr = 0, int mn = 0, int sec = 0,
                                        int ms = 0) {
   std::tm t{};
@@ -30,8 +30,7 @@ static int64_t expected_local_epoch_ms(int year, int mo, int day,
   t.tm_hour  = hr;
   t.tm_min   = mn;
   t.tm_sec   = sec;
-  t.tm_isdst = -1;  // let the C library figure DST out
-  std::time_t s = std::mktime(&t);
+  std::time_t s = timegm(&t);
   auto tp = std::chrono::system_clock::from_time_t(s);
   return std::chrono::duration_cast<std::chrono::milliseconds>(tp.time_since_epoch()).count() + ms;
 }
@@ -139,8 +138,8 @@ TEST_CASE("DATE - single date-only field matches std::chrono epoch ms") {
 
   REQUIRE(p->parseLine("2026-05-09", &pl));
   uint64_t val = *(pl.getDateField(0));
-  LOG(3, "date field val:%lld, expected:%lld\n", val, expected_local_epoch_ms(2026, 5, 9));
-  REQUIRE(*(pl.getDateField(0)) == expected_local_epoch_ms(2026, 5, 9));
+  LOG(3, "date field val:%lld, expected:%lld\n", val, expected_utc_epoch_ms(2026, 5, 9));
+  REQUIRE(*(pl.getDateField(0)) == expected_utc_epoch_ms(2026, 5, 9));
   teardown();
 }
 
@@ -156,7 +155,7 @@ TEST_CASE("DATE - parsing the same date twice gives the same int64") {
   int64_t a2 = *(pl.getDateField(0));
 
   REQUIRE(a1 == a2);
-  REQUIRE(a1 == expected_local_epoch_ms(2026, 5, 8));
+  REQUIRE(a1 == expected_utc_epoch_ms(2026, 5, 8));
   teardown();
 }
 
@@ -171,8 +170,8 @@ TEST_CASE("DATE - consecutive days differ by 86_400_000 ms") {
   REQUIRE(p->parseLine("2026-05-09", &pl));
   int64_t d1 = *(pl.getDateField(0));
 
-  REQUIRE(d0 == expected_local_epoch_ms(2026, 5, 8));
-  REQUIRE(d1 == expected_local_epoch_ms(2026, 5, 9));
+  REQUIRE(d0 == expected_utc_epoch_ms(2026, 5, 8));
+  REQUIRE(d1 == expected_utc_epoch_ms(2026, 5, 9));
   // 24h * 60min * 60s * 1000ms (assuming no DST transition between the two)
   REQUIRE(d1 - d0 == 86'400'000);
   teardown();
@@ -185,7 +184,7 @@ TEST_CASE("DATE - mixed with STR field, cursor advances correctly") {
   ParsedLine pl(p->format.get());
 
   REQUIRE(p->parseLine("2026-05-08 hello world", &pl));
-  REQUIRE(*(pl.getDateField(0)) == expected_local_epoch_ms(2026, 5, 8));
+  REQUIRE(*(pl.getDateField(0)) == expected_utc_epoch_ms(2026, 5, 8));
   REQUIRE(*(pl.getStrField(0))  == std::string_view("hello world"));
   teardown();
 }
@@ -199,7 +198,7 @@ TEST_CASE("DATE - mixed with INT and STR fields") {
 
   REQUIRE(p->parseLine("3 2026-05-08 boot complete", &pl));
   REQUIRE(*(pl.getIntField(0))  == 3);
-  REQUIRE(*(pl.getDateField(0)) == expected_local_epoch_ms(2026, 5, 8));
+  REQUIRE(*(pl.getDateField(0)) == expected_utc_epoch_ms(2026, 5, 8));
   REQUIRE(*(pl.getStrField(0))  == std::string_view("boot complete"));
   teardown();
 }
@@ -212,8 +211,8 @@ TEST_CASE("DATE - multiple DATE fields populate distinct slots") {
   ParsedLine pl(p->format.get());
 
   REQUIRE(p->parseLine("2026-05-08-2026-05-09", &pl));
-  REQUIRE(*(pl.getDateField(0)) == expected_local_epoch_ms(2026, 5, 8));
-  REQUIRE(*(pl.getDateField(1)) == expected_local_epoch_ms(2026, 5, 9));
+  REQUIRE(*(pl.getDateField(0)) == expected_utc_epoch_ms(2026, 5, 8));
+  REQUIRE(*(pl.getDateField(1)) == expected_utc_epoch_ms(2026, 5, 9));
   teardown();
 }
 
@@ -225,11 +224,11 @@ TEST_CASE("DATE - format with time component matches std::chrono") {
 
   REQUIRE(p->parseLine("2026-05-08 12:30:00", &pl));
   REQUIRE(*(pl.getDateField(0)) ==
-          expected_local_epoch_ms(2026, 5, 8, 12, 30, 0));
+          expected_utc_epoch_ms(2026, 5, 8, 12, 30, 0));
 
   REQUIRE(p->parseLine("2026-05-08 12:30:01", &pl));
   REQUIRE(*(pl.getDateField(0)) ==
-          expected_local_epoch_ms(2026, 5, 8, 12, 30, 1));
+          expected_utc_epoch_ms(2026, 5, 8, 12, 30, 1));
   teardown();
 }
 
@@ -243,15 +242,15 @@ TEST_CASE("DATE - format with millisecond component matches std::chrono") {
 
   REQUIRE(p->parseLine("2026-05-08 12:30:00.000", &pl));
   REQUIRE(*(pl.getDateField(0)) ==
-          expected_local_epoch_ms(2026, 5, 8, 12, 30, 0, 0));
+          expected_utc_epoch_ms(2026, 5, 8, 12, 30, 0, 0));
 
   REQUIRE(p->parseLine("2026-05-08 12:30:00.001", &pl));
   REQUIRE(*(pl.getDateField(0)) ==
-          expected_local_epoch_ms(2026, 5, 8, 12, 30, 0, 1));
+          expected_utc_epoch_ms(2026, 5, 8, 12, 30, 0, 1));
 
   REQUIRE(p->parseLine("2026-05-08 12:30:00.999", &pl));
   REQUIRE(*(pl.getDateField(0)) ==
-          expected_local_epoch_ms(2026, 5, 8, 12, 30, 0, 999));
+          expected_utc_epoch_ms(2026, 5, 8, 12, 30, 0, 999));
   teardown();
 }
 
