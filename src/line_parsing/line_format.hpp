@@ -8,7 +8,7 @@
 #include <map>
 
 enum FieldType {
-  INT, DBL, CHR, STR, WS
+  INT, DBL, CHR, STR, WS, DATE
 };
 
 class LineField{
@@ -79,8 +79,45 @@ public:
 };
 
 class WhitespaceField : public LineField {
-public: 
+public:
   WhitespaceField() : LineField("", FieldType::WS) {}
+};
+
+
+// Not very happy with putting all of this here...
+typedef struct datetime_t {
+  int32_t yr;
+  int32_t month;
+  int32_t day;
+  int32_t hr;
+  int32_t min;
+  int32_t sec;
+  int32_t ms;
+} datetime_t;
+
+
+typedef struct datetime_parsing_step_t {
+  bool (*func)(char, datetime_t*, char);
+  char param_c;
+} datetime_parsing_step_t;
+
+class _DateFieldOption {
+public:
+  std::string format;
+  std::vector<datetime_parsing_step_t> parsing_routine;
+  _DateFieldOption(std::string fmt) : format(std::move(fmt)), parsing_routine({}) {}
+};
+
+class LineDateField : public LineField {
+public:
+  _DateFieldOption* opt;
+
+  LineDateField(std::string field_name, std::string fmt) : LineField(field_name, FieldType::DATE) {
+    opt = new _DateFieldOption(std::move(fmt));
+  }
+  ~LineDateField() {
+    delete opt;
+  }
 };
 
 
@@ -89,9 +126,9 @@ class LineFormat {
   std::map<std::string, LineField*> name_to_field;
 public:
   std::vector<LineField*> fields;
-  int nint, ndbl, nchr, nstr, nws;
+  int nint, ndbl, nchr, nstr, nws, ndate;
 
-  LineFormat() : nint(0), ndbl(0), nchr(0), nstr(0), nws(0){}
+  LineFormat() : nint(0), ndbl(0), nchr(0), nstr(0), nws(0), ndate(0){}
   ~LineFormat(){
     for(auto field : fields){
       delete field;
@@ -103,6 +140,7 @@ public:
   int getNCharFields() const { return nchr; };
   int getNStringFields() const { return nstr; };
   int getNWhiteSpaceFields() const { return nws; };
+  int getNDateFields() const { return ndate; };
 
   LineField* getFieldFromName(std::string field_name) {
     if(name_to_field.count(field_name) > 0){
@@ -137,6 +175,9 @@ public:
     case FieldType::WS:
       nws++;
       break;
+    case FieldType::DATE:
+      ndate++;
+      break;
     default:
       // TODO throw error
       break;
@@ -148,6 +189,7 @@ public:
       std::string name = lf->name;
       LineChrField* lcf;
       LineStrField* lsf;
+      LineDateField* ldf;
       switch (lf->ft)
       {
       case FieldType::INT:
@@ -166,6 +208,10 @@ public:
         break;
       case FieldType::WS:
         printf(" ");
+        break;
+      case FieldType::DATE:
+        ldf = dynamic_cast<LineDateField*>(lf);
+        printf("{DATE:%s,%s}", name.data(), ldf->opt->format.data());
         break;
       default:
         // TODO throw error
@@ -186,6 +232,7 @@ public:
     //   {CHR:name,c,r}    literal char `c`; r != '0' means it may repeat
     //   {STR:name}        stops at the char following '}', or any whitespace if that char is ' '
     //   {STR:name,N}      fixed-length string of N chars
+    //   {DATE:name,FMT}   date with format spec FMT (read raw up to '}')
     //
     // To add a new tag: declare its LineField subclass, then add a branch in the
     // dispatch below (and in the param section if it takes parameters).
@@ -238,6 +285,7 @@ public:
       char str_delim  = 0;
       char chr_target = 0;
       bool chr_repeat = false;
+      std::string date_format;
       size_t next_idx = 0;
 
       if(fmt_str[name_end] == ','){
@@ -263,6 +311,15 @@ public:
           if(fmt_str[p + 3] != '}')  fail("CHR repeat flag must be followed by '}'");
           next_idx = p + 4;
 
+        } else if(tag == "DATE"){
+          // {DATE:name,FMT} -- FMT is read raw up to '}' (so it may contain spaces, ':', '.', '-', etc.)
+          size_t fmt_end = p;
+          while(fmt_end < n && fmt_str[fmt_end] != '}') ++fmt_end;
+          if(fmt_end >= n)           fail("unterminated DATE format, expected '}'");
+          if(fmt_end == p)           fail("DATE format must not be empty");
+          date_format = fmt_str.substr(p, fmt_end - p);
+          next_idx = fmt_end + 1;
+
         } else {
           fail("tag does not accept parameters");
         }
@@ -284,11 +341,15 @@ public:
       }
 
       // 4. Construct the field.
-      if      (tag == "INT") lf->addField(new LineIntField(name));
-      else if (tag == "DBL") lf->addField(new LineDblField(name));
-      else if (tag == "STR") lf->addField(new LineStrField(name, str_stop, str_delim, str_nchar));
-      else if (tag == "CHR") lf->addField(new LineChrField(name, chr_target, chr_repeat));
-      else                   fail("unknown tag");
+      if      (tag == "INT")  lf->addField(new LineIntField(name));
+      else if (tag == "DBL")  lf->addField(new LineDblField(name));
+      else if (tag == "STR")  lf->addField(new LineStrField(name, str_stop, str_delim, str_nchar));
+      else if (tag == "CHR")  lf->addField(new LineChrField(name, chr_target, chr_repeat));
+      else if (tag == "DATE"){
+        if(date_format.empty()) fail("DATE requires a format, e.g. {DATE:name,YYYY-MM-DD hh:mm:ss}");
+        lf->addField(new LineDateField(name, date_format));
+      }
+      else                    fail("unknown tag");
 
       idx = next_idx;
     }

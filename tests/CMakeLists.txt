@@ -13,6 +13,7 @@ add_executable(run_tests
   test_line_format.cpp
   test_line_parser.cpp
   test_line_filter.cpp
+  test_date_field.cpp
   test_filtered_file_reader.cpp
   test_cached_filtered_file_navigator.cpp
   test_cyclic_deque.cpp

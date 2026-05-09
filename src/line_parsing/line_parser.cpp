@@ -41,6 +41,13 @@ std::shared_ptr<Parser> Parser::fromLineFormat(std::unique_ptr<LineFormat> lfmt)
       ws_parsing->ft = FieldType::WS;
       p->addParsingStep(ws_parsing);
     }
+    else if(lfield->ft == FieldType::DATE){
+      LineDateField* df = static_cast<LineDateField*>(lfield);
+      parse_instruction_t* date_parsing = (parse_instruction_t*)malloc(sizeof(parse_instruction_t));;
+      date_parsing->format_args = (void*) df->opt;
+      date_parsing->ft = FieldType::DATE;
+      p->addParsingStep(date_parsing);
+    }
   }
   p->format = std::move(lfmt);
   return p;
@@ -64,7 +71,7 @@ bool Parser::parseLine(std::string_view line, ParsedLine* ret){
   std::vector<parse_instruction_t*>::iterator iter;
 
   const char* s = line.data();
-  int nint_parsed = 0, ndbl_parsed = 0, nchr_parsed = 0, nstr_parsed = 0;
+  int nint_parsed = 0, ndbl_parsed = 0, nchr_parsed = 0, nstr_parsed = 0, ndate_parsed = 0;
   for(iter = parsing_routine.begin(); s < line.data() + line.size() && iter != parsing_routine.end(); iter++){
     parse_instruction_t* inst = *iter;
     LOG_FCT(9, "New inst (%d) starting at char %c (id %d)\n",  inst->ft, *s, (s - line.data())/sizeof(char));
@@ -84,6 +91,9 @@ bool Parser::parseLine(std::string_view line, ParsedLine* ret){
       break;
     case FieldType::WS:
       res = parse_ws(&s);
+      break;
+    case FieldType::DATE:
+      res = parse_date(&s, (_DateFieldOption*) inst->format_args, ret->getDateField(ndate_parsed++));
       break;
     default:
       res = -1;

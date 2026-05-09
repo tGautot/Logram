@@ -16,6 +16,7 @@ class ParsedLine {
   double* dbl_fields;
   char* chr_fields;
   std::string_view* str_fields;
+  int64_t* date_fields;
 
   ParsedLine(LineFormat* fmt);
   ParsedLine(ParsedLine&& old);
@@ -25,6 +26,7 @@ class ParsedLine {
   double* getDblField(int id) const { return dbl_fields + id; }
   char* getChrField(int id) const { return chr_fields + id; }
   std::string_view* getStrField(int id) const { return str_fields + id; }
+  int64_t* getDateField(int id) const { return date_fields + id; }
 
   void asStringToStream(std::ostream& os, LineFormat& fmt);
 };
