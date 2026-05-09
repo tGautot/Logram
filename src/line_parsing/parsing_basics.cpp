@@ -1,23 +1,25 @@
 #include "parsing_basics.hpp"
 #include "line_format.hpp"
 #include "perf_analyzer.hpp"
-#include <algorithm>
 #include <cctype>
 #include <cstdint>
 #include <cstdlib>
 #include <cstring>
 #include <stdexcept>
+#include "logging.hpp"
 
 #define IS_NUM 1
 #define IS_ALPHA 2
+#define IS_SPACE 4
+#define IS_EOL 8
 
 
 const char glt_c[256] = {
-        /* 0x00-0x0F: NUL SOH STX ETX EOT ENQ ACK BEL BS  TAB LF  VT  FF  CR  SO  SI  */
-    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    /* 0x00-0x0F: NUL      SOH STX ETX EOT ENQ ACK BEL BS  TAB        LF       VT  FF  CR       SO  SI  */
+                  IS_EOL,  0,  0,  0,  0,  0,  0,  0,  0,  IS_SPACE,  IS_EOL,  0,  0,  IS_EOL,  0,  0,
     /* 0x10-0x1F: DLE DC1 DC2 DC3 DC4 NAK SYN ETB CAN EM  SUB ESC FS  GS  RS  US  */
-    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-    0, /* 0x20: SP  */
+                  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
+    IS_SPACE, /* 0x20: SP  */
     0, /* 0x21: !   */
     0, /* 0x22: "   */
     0, /* 0x23: #   */
@@ -133,11 +135,14 @@ const char glt_c[256] = {
 
 
 int parse_int(const char** s, int64_t* res){  
-  *((int64_t*)res) = atol(*s);
-  
-  if(*((int64_t*)res) == 0 && **s != '0') return -1;
-  while(**s >= '0' && **s <= '9') (*s)++; // Move pointer fwd until char is not digit
-  return 0;
+  *res = 0;
+  bool has_digit = glt_c[(unsigned char)**s] & IS_NUM; 
+  LOG(3, "Parsing int fuirst char is %c : %d\n", **s, has_digit);
+  while(glt_c[(unsigned char)**s] & IS_NUM){
+    *res = *res * 10 + (**s - '0');
+    (*s)++;
+  }  // Move pointer fwd until char is not digit
+  return !has_digit; // return 0 means OK, so invert
 }
 
 int parse_dbl(const char** s, double* res){  
@@ -169,9 +174,8 @@ int parse_chr(const char** s, _ChrFieldOption* p, void* res){
 int parse_str(const char** s, _StrFieldOption* p, void* res){
   int nchar = 0;
   auto not_eol = [&s, &nchar]()->bool{
-    return  (*s)[nchar] != 0 && 
-            (*s)[nchar] != '\n' && 
-            !((*s)[nchar] == '\r' && (*s)[nchar+1] == '\n');};
+    return  !(glt_c[(unsigned char)(*s)[nchar]] & IS_EOL);
+  };
   if(p->stop_type == StrFieldStopType::NCHAR){
     nchar = p->nchar;
   }
@@ -181,7 +185,7 @@ int parse_str(const char** s, _StrFieldOption* p, void* res){
     }
   }
   else if (p->stop_type == StrFieldStopType::ANY_WS){
-    while(!std::isspace((*s)[nchar]) && not_eol()){
+    while(!(glt_c[(unsigned char)(*s)[nchar]] & (IS_SPACE | IS_EOL))){
       nchar++;
     }
   }
@@ -196,7 +200,7 @@ int parse_str(const char** s, _StrFieldOption* p, void* res){
 }
 
 int parse_ws(const char** s){
-  while(**s != 0 && **s != '\n' && std::isspace(**s)){(*s)++;}
+  while(glt_c[(unsigned char)**s] & IS_SPACE){(*s)++;}
   return 0;
 }
 

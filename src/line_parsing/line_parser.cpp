@@ -71,6 +71,7 @@ bool Parser::parseLine(std::string_view line, ParsedLine* ret){
   std::vector<parse_instruction_t*>::iterator iter;
 
   const char* s = line.data();
+  LOG_FCT(9, "Parsing line \"%s\"\n", std::string(line.data(), line.size()).data());
   int nint_parsed = 0, ndbl_parsed = 0, nchr_parsed = 0, nstr_parsed = 0, ndate_parsed = 0;
   for(iter = parsing_routine.begin(); s < line.data() + line.size() && iter != parsing_routine.end(); iter++){
     parse_instruction_t* inst = *iter;
